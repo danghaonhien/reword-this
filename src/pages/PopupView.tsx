@@ -51,6 +51,7 @@ interface HistoryItem {
 const PopupView: React.FC = () => {
   const [textToRewrite, setTextToRewrite] = useState('')
   const [rewrite, setRewrite] = useState('')
+  const [isRewording, setIsRewording] = useState(false)
   const [selectedTone, setSelectedTone] = useState('clarity')
   const [showInput, setShowInput] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -158,6 +159,12 @@ const PopupView: React.FC = () => {
     }
   }
 
+  // Update the home screen 'Reword This' button to trigger the inline rewrite
+  const handleRewordButtonClick = () => {
+    // Trigger the rewrite with the current text and tone
+    inlineRewrite(textToRewrite, selectedTone)
+  }
+
   // Function for the surprise me feature
   const handleSurpriseMe = () => {
     // Set the tone to surprise (only if it's different)
@@ -165,14 +172,35 @@ const PopupView: React.FC = () => {
       setSelectedTone('surprise')
     }
     
-    // Hide input immediately to show we're processing
-    setShowInput(false)
+    // Trigger the rewrite with surprise tone
+    inlineRewrite(textToRewrite, 'surprise')
   }
 
-  // Handle the reword button click
-  const handleRewordButtonClick = () => {
-    // Hide input immediately to show we're processing
-    setShowInput(false)
+  // Function to handle inline rewrites
+  const inlineRewrite = async (text: string, tone: string) => {
+    if (!text.trim()) return;
+    
+    // Clear previous rewrite
+    setRewrite('')
+    // Set loading state
+    setIsRewording(true)
+    
+    // Use the useRewrite hook's rewrite function
+    try {
+      const result = await rewriteText(text, tone)
+      if (result) {
+        // Set the rewritten text
+        setRewrite(result)
+        // Save to history
+        saveToHistory(text, result, tone)
+        // Add XP
+        addXP(5)
+      }
+    } catch (error) {
+      console.error("Error during inline rewrite:", error)
+    } finally {
+      setIsRewording(false)
+    }
   }
 
   // Handle text selection from history
@@ -207,7 +235,6 @@ const PopupView: React.FC = () => {
 
   // Start another rewrite with the same text
   const rewriteAgain = () => {
-    setShowInput(true)
     setRewrite('')
   }
 
@@ -349,10 +376,68 @@ const PopupView: React.FC = () => {
                     </div>
                   </div>
 
-                  <TextInput 
-                    text={textToRewrite} 
-                    onTextChange={setTextToRewrite} 
-                  />
+                  {/* Rewrite Result (when available) */}
+                  {isRewording ? (
+                    <div className="mb-4 bg-card border border-border rounded-md p-4">
+                      <div className="flex flex-col items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <p className="mt-4 text-sm text-center">Rewriting with <span className="capitalize font-medium">{selectedTone}</span> tone...</p>
+                      </div>
+                    </div>
+                  ) : rewrite ? (
+                    <div className="mb-4 space-y-4">
+                      <div className="bg-card border border-border rounded-md p-4">
+                        <div className="flex justify-between items-center mb-3">
+                          <h3 className="text-sm font-medium">Rewritten with <span className="capitalize">{selectedTone}</span> tone</h3>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(rewrite)
+                                .catch(err => console.error('Failed to copy text:', err))
+                            }}
+                            className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                        
+                        <p className="text-sm whitespace-pre-wrap">{rewrite}</p>
+                      </div>
+                      
+                      <div className="flex justify-end">
+                        <button
+                          onClick={rewriteAgain}
+                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-border hover:bg-muted/30 transition-colors"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Rewrite Again
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Collapsible Text Input (collapsed when rewrite is available) */}
+                  <div className={`${rewrite || isRewording ? 'border border-border rounded-md overflow-hidden' : ''}`}>
+                    {(rewrite || isRewording) && (
+                      <button 
+                        onClick={() => {
+                          setRewrite('')
+                          setIsRewording(false)
+                        }}
+                        className="w-full py-2 px-3 text-xs text-muted-foreground hover:text-foreground bg-muted/30 flex items-center justify-center"
+                        disabled={isRewording}
+                      >
+                        {isRewording ? 'Rewriting...' : 'Edit Original Text'}
+                      </button>
+                    )}
+                    
+                    {/* Show TextInput when no rewrite is happening or when explicitly editing */}
+                    {(!rewrite && !isRewording) && (
+                      <TextInput 
+                        text={textToRewrite} 
+                        onTextChange={setTextToRewrite} 
+                      />
+                    )}
+                  </div>
                   
                   <ToneSelector 
                     selectedTone={selectedTone} 
@@ -363,10 +448,10 @@ const PopupView: React.FC = () => {
                   <div className="flex justify-center mt-4">
                     <button
                       onClick={handleRewordButtonClick}
-                      disabled={!textToRewrite.trim()}
+                      disabled={!textToRewrite.trim() || isRewording}
                       className="w-full max-w-md py-2.5 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Reword This!
+                      {isRewording ? 'Rewriting...' : 'Reword This!'}
                     </button>
                   </div>
                 </>
@@ -540,7 +625,7 @@ const RewordResult: React.FC<{
   
   // Pass the rewritten text up to the parent when it's ready
   useEffect(() => {
-    if (rewrittenText && !hasNotifiedParent) {
+    if (rewrittenText && !hasNotifiedParent && onRewrittenText) {
       onRewrittenText(rewrittenText)
       setHasNotifiedParent(true)
     }
