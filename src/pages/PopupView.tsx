@@ -388,7 +388,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                   </div>
 
                   {/* Content Container - flex-grow to push controls to bottom */}
-                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1 pb-32">
+                  <div className="flex-grow overflow-y-auto custom-scrollbar  pb-32">
                     {/* Rewrite Result (when available) */}
                     {isRewording ? (
                       <div className="mb-4 bg-card border border-border rounded-md p-4">
