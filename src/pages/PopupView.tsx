@@ -6,7 +6,12 @@ import {
   RotateCcw, 
   X,
   Trophy,
-  Flame
+  Flame,
+  History,
+  Swords,
+  Palette,
+  Info,
+  Trash2
 } from 'lucide-react'
 import ToneSelector from '../components/ToneSelector'
 import RewordHistory from '../components/RewordHistory'
@@ -34,6 +39,14 @@ const getLevelTitle = (level: number): string => {
   return level <= titles.length ? titles[level - 1] : "Reword Legend";
 }
 
+interface HistoryItem {
+  id: string
+  originalText: string
+  rewrittenText: string
+  tone: string
+  timestamp: number
+}
+
 const PopupView: React.FC = () => {
   const [textToRewrite, setTextToRewrite] = useState('')
   const [rewrite, setRewrite] = useState('')
@@ -43,7 +56,8 @@ const PopupView: React.FC = () => {
     const savedMode = localStorage.getItem('reword-dark-mode')
     return savedMode === 'true' || (savedMode === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
   })
-  const [currentView, setCurrentView] = useState<'rewrite' | 'battle' | 'custom' | 'rewards'>('rewrite')
+  const [currentView, setCurrentView] = useState<'battle' | 'custom' | 'rewards' | 'history' | null>(null)
+  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([])
   const gameification = useGameification()
   const { addXP, xp, level, streak } = gameification
   
@@ -76,6 +90,27 @@ const PopupView: React.FC = () => {
       document.documentElement.classList.remove('dark')
     }
   }, [isDarkMode])
+  
+  // Load history on mount and when it updates
+  const loadHistory = () => {
+    const storedHistory = localStorage.getItem('reword-history')
+    if (storedHistory) {
+      try {
+        const parsedHistory = JSON.parse(storedHistory) as HistoryItem[]
+        setHistoryItems(parsedHistory)
+      } catch (error) {
+        console.error('Error parsing history:', error)
+      }
+    }
+  }
+  
+  useEffect(() => {
+    loadHistory()
+    window.addEventListener('rewordHistoryUpdated', loadHistory)
+    return () => {
+      window.removeEventListener('rewordHistoryUpdated', loadHistory)
+    }
+  }, [])
 
   // Save rewrite to history
   const saveToHistory = (original: string, rewritten: string, tone: string) => {
@@ -123,13 +158,28 @@ const PopupView: React.FC = () => {
     setTextToRewrite(text)
     setShowInput(true)
     setRewrite('')
+    setCurrentView(null)
+  }
+  
+  // Handle history item deletion
+  const handleDeleteHistoryItem = (id: string) => {
+    try {
+      const updatedItems = historyItems.filter(item => item.id !== id)
+      localStorage.setItem('reword-history', JSON.stringify(updatedItems))
+      setHistoryItems(updatedItems)
+      
+      // Notify other components
+      window.dispatchEvent(new Event('rewordHistoryUpdated'))
+    } catch (error) {
+      console.error('Error deleting history item:', error)
+    }
   }
 
   // Reset to input view
   const resetView = () => {
     setShowInput(true)
     setRewrite('')
-    setCurrentView('rewrite')
+    setCurrentView(null)
   }
 
   // Start another rewrite with the same text
@@ -145,79 +195,85 @@ const PopupView: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-grow h-full max-h-[600px] bg-background">
-      {/* Sidebar */}
-      <div className="flex flex-col items-center w-12 py-4 bg-card border-r border-border">
-        {/* Navigation buttons */}
-        <div className="flex flex-col items-center gap-3 mb-auto">
-          <button 
-            onClick={() => setCurrentView('rewrite')}
-            className={`p-2 rounded-full ${currentView === 'rewrite' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-            title="Standard Rewrite"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-          
-          <button 
-            onClick={() => setCurrentView('battle')}
-            className={`p-2 rounded-full ${currentView === 'battle' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-            title="Battle Rewrite"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 4L3 11L10 14M20 4L13 21L10 14M20 4L10 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          
-          <button 
-            onClick={() => setCurrentView('custom')}
-            className={`p-2 rounded-full ${currentView === 'custom' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-            title="Custom Tone Rewrite"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 20L3 17V4L9 7M9 20V7M9 20L15 17M9 7L15 4M15 4L21 7V20L15 17M15 17V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </div>
-        
-        {/* Bottom controls */}
-        <div className="flex flex-col items-center gap-3 mt-auto">
-          <button
-            onClick={() => setCurrentView('rewards')}
-            className={`p-2 rounded-full ${currentView === 'rewards' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-            title="Rewards"
-          >
-            <Sparkles className="w-4 h-4" />
-          </button>
-          
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground"
-            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          
-          <button
-            onClick={closeApp}
-            className="p-2 rounded-full hover:bg-destructive/20 text-destructive"
-            title="Close"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-      
+    <div className="flex flex-grow h-full min-h-screen bg-background">
       {/* Main content area */}
-      <div className="flex-1 flex flex-col h-full max-h-[600px] overflow-hidden">
+      <div className="flex-1 flex flex-col h-full min-h-screen overflow-hidden">
         {/* Main content - conditionally render based on current view */}
         <div className="flex-1 overflow-hidden">
           {currentView === 'rewards' ? (
             <div className="h-full overflow-auto custom-scrollbar p-4">
+              <button
+                onClick={resetView}
+                className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
+              >
+                ← Back to Home
+              </button>
               <RewardsPanel onBack={resetView} />
+            </div>
+          ) : currentView === 'history' ? (
+            <div className="h-full overflow-auto custom-scrollbar p-4">
+              <button
+                onClick={resetView}
+                className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
+              >
+                ← Back to Home
+              </button>
+              <h3 className="text-sm font-medium mb-4">Rewrite History</h3>
+              <div className="space-y-3">
+                {historyItems.length === 0 ? (
+                  <div className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-md">
+                    No history yet. Start rewriting to build history!
+                  </div>
+                ) : (
+                  historyItems.map((item) => (
+                    <div key={item.id} className="border border-border rounded-md p-2 text-xs">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="capitalize font-medium text-xs">{item.tone} tone</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xxs text-muted-foreground">
+                            {new Date(item.timestamp).toLocaleDateString()} 
+                            {' '}
+                            {new Date(item.timestamp).toLocaleTimeString(undefined, { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteHistoryItem(item.id)}
+                            className="p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                            title="Delete this history item"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className="bg-muted/30 p-1.5 rounded-sm mb-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handleHistorySelect(item.rewrittenText)}
+                      >
+                        {item.rewrittenText.length > 80 
+                          ? `${item.rewrittenText.substring(0, 80)}...` 
+                          : item.rewrittenText
+                        }
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-xxs text-muted-foreground line-clamp-1">
+                          {item.originalText.length > 40 
+                            ? `${item.originalText.substring(0, 40)}...` 
+                            : item.originalText
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           ) : (
             <div className="h-full overflow-auto custom-scrollbar p-4">
-              {showInput ? (
+              {currentView === null ? (
                 <>
                   {/* XP Display Component */}
                   <div className="mb-4 bg-card border border-border rounded-md p-3 shadow-sm">
@@ -229,9 +285,14 @@ const PopupView: React.FC = () => {
                           <span className="text-xs text-muted-foreground ml-1.5">Lvl {level}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 relative group">
                         <Flame className="w-4 h-4 text-accent" />
                         <span className="text-sm font-medium">{streak} day streak</span>
+                        <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+                        <div className="absolute bottom-full right-0 mb-2 bg-popover text-popover-foreground text-xs p-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                          <div className="text-xs">Current streak: {streak}/7 days</div>
+                          <div className="text-xs mt-1">Keep rewriting daily to maintain your streak!</div>
+                        </div>
                       </div>
                     </div>
                     
@@ -254,33 +315,44 @@ const PopupView: React.FC = () => {
                     onRewriteClick={() => setShowInput(false)}
                   />
                   
-                  {currentView === 'rewrite' && (
-                    <ToneSelector 
-                      selectedTone={selectedTone} 
-                      onChange={setSelectedTone} 
-                      onSurpriseMe={handleSurpriseMe}
-                    />
-                  )}
+                  <ToneSelector 
+                    selectedTone={selectedTone} 
+                    onChange={setSelectedTone} 
+                    onSurpriseMe={handleSurpriseMe}
+                  />
+                </>
+              ) : showInput ? (
+                <>
+                  <button
+                    onClick={resetView}
+                    className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
+                  >
+                    ← Back to Home
+                  </button>
                   
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-medium">Recent Rewordings</h3>
-                      <RewordHistory 
-                        onSelectHistoryItem={handleHistorySelect} 
-                        hideLabel
-                      />
-                    </div>
-                    <RewordHistory 
-                      onSelectHistoryItem={handleHistorySelect}
-                      fullPage
-                      showLimited
-                    />
-                  </div>
+                  <TextInput 
+                    text={textToRewrite} 
+                    onTextChange={setTextToRewrite} 
+                    onRewriteClick={() => setShowInput(false)}
+                  />
+                  
+                  <ToneSelector 
+                    selectedTone={selectedTone} 
+                    onChange={setSelectedTone} 
+                    onSurpriseMe={handleSurpriseMe}
+                  />
                 </>
               ) : (
                 <>
-                  {currentView === 'rewrite' && (
+                  {!showInput && (
                     <div className="space-y-4">
+                      <button
+                        onClick={resetView}
+                        className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
+                      >
+                        ← Back to Home
+                      </button>
+                      
                       <RewordResult 
                         originalText={textToRewrite}
                         tone={selectedTone}
@@ -291,22 +363,127 @@ const PopupView: React.FC = () => {
                   )}
                   
                   {currentView === 'battle' && (
-                    <RewriteBattle 
-                      originalText={textToRewrite}
-                      onRewriteAgain={rewriteAgain}
-                    />
+                    <>
+                      <button
+                        onClick={resetView}
+                        className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
+                      >
+                        ← Back to Home
+                      </button>
+                      
+                      <RewriteBattle 
+                        originalText={textToRewrite}
+                        onRewriteAgain={rewriteAgain}
+                      />
+                    </>
                   )}
                   
                   {currentView === 'custom' && (
-                    <CustomToneBuilder
-                      originalText={textToRewrite}
-                      onRewriteAgain={rewriteAgain}
-                    />
+                    <>
+                      <button
+                        onClick={resetView}
+                        className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
+                      >
+                        ← Back to Home
+                      </button>
+                      
+                      <CustomToneBuilder
+                        originalText={textToRewrite}
+                        onRewriteAgain={rewriteAgain}
+                      />
+                    </>
                   )}
                 </>
               )}
             </div>
           )}
+        </div>
+      </div>
+      
+      {/* Sidebar - moved to the right */}
+      <div className="flex flex-col items-center w-12 py-4 bg-card border-l border-border">
+        {/* Navigation buttons */}
+        <div className="flex flex-col items-center gap-3 mb-auto">
+          <div className="relative group">
+            <button 
+              onClick={() => setCurrentView('battle')}
+              className={`p-2 rounded-full ${currentView === 'battle' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
+              title="Battle Rewrite"
+            >
+              <Swords className="w-4 h-4" />
+            </button>
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+              Rewrite Battle
+            </span>
+          </div>
+          
+          <div className="relative group">
+            <button 
+              onClick={() => setCurrentView('custom')}
+              className={`p-2 rounded-full ${currentView === 'custom' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
+              title="Custom Tone Rewrite"
+            >
+              <Palette className="w-4 h-4" />
+            </button>
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+              Custom Tone
+            </span>
+          </div>
+          
+          <div className="relative group">
+            <button 
+              onClick={() => setCurrentView('history')}
+              className={`p-2 rounded-full ${currentView === 'history' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
+              title="Rewrite History"
+            >
+              <History className="w-4 h-4" />
+            </button>
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+              History
+            </span>
+          </div>
+        </div>
+        
+        {/* Bottom controls */}
+        <div className="flex flex-col items-center gap-3 mt-auto">
+          <div className="relative group">
+            <button
+              onClick={() => setCurrentView('rewards')}
+              className={`p-2 rounded-full ${currentView === 'rewards' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
+              title="Rewards"
+            >
+              <Sparkles className="w-4 h-4" />
+            </button>
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+              Rewards
+            </span>
+          </div>
+          
+          <div className="relative group">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground"
+              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+              {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            </span>
+          </div>
+          
+          <div className="relative group">
+            <button
+              onClick={closeApp}
+              className="p-2 rounded-full hover:bg-destructive/20 text-destructive"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+              Close
+            </span>
+          </div>
         </div>
       </div>
     </div>
