@@ -11,7 +11,8 @@ import {
   Swords,
   Palette,
   Info,
-  Trash2
+  Trash2,
+  ChevronDown
 } from 'lucide-react'
 import ToneSelector from '../components/ToneSelector'
 import RewordHistory from '../components/RewordHistory'
@@ -58,8 +59,10 @@ const PopupView: React.FC = () => {
   })
   const [currentView, setCurrentView] = useState<'battle' | 'custom' | 'rewards' | 'history' | null>(null)
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([])
+  const [showAllHistory, setShowAllHistory] = useState(false)
   const gameification = useGameification()
   const { addXP, xp, level, streak } = gameification
+  const { rewrite: rewriteText } = useRewrite()
   
   // Close the popup window (extension only)
   const closeApp = () => {
@@ -145,12 +148,31 @@ const PopupView: React.FC = () => {
 
   // Handle a rewrite from the regular flow
   const handleRewrite = (text: string) => {
-    setRewrite(text)
-    setShowInput(false)
-    // Only save to history if we have both texts
-    if (textToRewrite && text) {
+    // Only save to history if we have both texts and they're not empty
+    if (textToRewrite && text && text.trim() !== '') {
+      // Set rewrite text
+      setRewrite(text)
+      
+      // Save to history
       saveToHistory(textToRewrite, text, selectedTone)
     }
+  }
+
+  // Function for the surprise me feature
+  const handleSurpriseMe = () => {
+    // Set the tone to surprise (only if it's different)
+    if (selectedTone !== 'surprise') {
+      setSelectedTone('surprise')
+    }
+    
+    // Hide input immediately to show we're processing
+    setShowInput(false)
+  }
+
+  // Handle the reword button click
+  const handleRewordButtonClick = () => {
+    // Hide input immediately to show we're processing
+    setShowInput(false)
   }
 
   // Handle text selection from history
@@ -180,6 +202,7 @@ const PopupView: React.FC = () => {
     setShowInput(true)
     setRewrite('')
     setCurrentView(null)
+    setShowAllHistory(false)
   }
 
   // Start another rewrite with the same text
@@ -188,11 +211,16 @@ const PopupView: React.FC = () => {
     setRewrite('')
   }
 
-  // Function for the surprise me feature
-  const handleSurpriseMe = () => {
-    // This would trigger a rewrite with a surprise tone
-    console.log('Surprise me clicked');
+  // Filter history items for display
+  const getDisplayHistoryItems = () => {
+    if (showAllHistory) {
+      return historyItems;
+    }
+    return historyItems.slice(0, 4);
   }
+
+  const displayHistoryItems = getDisplayHistoryItems();
+  const hasMoreHistoryItems = !showAllHistory && historyItems.length > 4;
 
   return (
     <div className="flex flex-grow h-full min-h-screen bg-background">
@@ -201,7 +229,7 @@ const PopupView: React.FC = () => {
         {/* Main content - conditionally render based on current view */}
         <div className="flex-1 overflow-hidden">
           {currentView === 'rewards' ? (
-            <div className="h-full overflow-auto custom-scrollbar p-4">
+            <div className="h-full min-h-0 overflow-auto custom-scrollbar p-4">
               <button
                 onClick={resetView}
                 className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
@@ -211,7 +239,7 @@ const PopupView: React.FC = () => {
               <RewardsPanel onBack={resetView} />
             </div>
           ) : currentView === 'history' ? (
-            <div className="h-full overflow-auto custom-scrollbar p-4">
+            <div className="h-full min-h-0 overflow-auto custom-scrollbar p-4">
               <button
                 onClick={resetView}
                 className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
@@ -225,55 +253,67 @@ const PopupView: React.FC = () => {
                     No history yet. Start rewriting to build history!
                   </div>
                 ) : (
-                  historyItems.map((item) => (
-                    <div key={item.id} className="border border-border rounded-md p-2 text-xs">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="capitalize font-medium text-xs">{item.tone} tone</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xxs text-muted-foreground">
-                            {new Date(item.timestamp).toLocaleDateString()} 
-                            {' '}
-                            {new Date(item.timestamp).toLocaleTimeString(undefined, { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
+                  <>
+                    {displayHistoryItems.map((item) => (
+                      <div key={item.id} className="border border-border rounded-md p-2 text-xs">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="capitalize font-medium text-xs">{item.tone} tone</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xxs text-muted-foreground">
+                              {new Date(item.timestamp).toLocaleDateString()} 
+                              {' '}
+                              {new Date(item.timestamp).toLocaleTimeString(undefined, { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteHistoryItem(item.id)}
+                              className="p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                              title="Delete this history item"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div 
+                          className="bg-muted/30 p-1.5 rounded-sm mb-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => handleHistorySelect(item.rewrittenText)}
+                        >
+                          {item.rewrittenText.length > 80 
+                            ? `${item.rewrittenText.substring(0, 80)}...` 
+                            : item.rewrittenText
+                          }
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <span className="text-xxs text-muted-foreground line-clamp-1">
+                            {item.originalText.length > 40 
+                              ? `${item.originalText.substring(0, 40)}...` 
+                              : item.originalText
+                            }
                           </span>
-                          <button
-                            onClick={() => handleDeleteHistoryItem(item.id)}
-                            className="p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                            title="Delete this history item"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
                         </div>
                       </div>
-                      
-                      <div 
-                        className="bg-muted/30 p-1.5 rounded-sm mb-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => handleHistorySelect(item.rewrittenText)}
+                    ))}
+                    
+                    {hasMoreHistoryItems && (
+                      <button
+                        onClick={() => setShowAllHistory(true)}
+                        className="w-full py-2 text-xs flex items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        {item.rewrittenText.length > 80 
-                          ? `${item.rewrittenText.substring(0, 80)}...` 
-                          : item.rewrittenText
-                        }
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-xxs text-muted-foreground line-clamp-1">
-                          {item.originalText.length > 40 
-                            ? `${item.originalText.substring(0, 40)}...` 
-                            : item.originalText
-                          }
-                        </span>
-                      </div>
-                    </div>
-                  ))
+                        <ChevronDown className="w-3.5 h-3.5" />
+                        Show More
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
           ) : (
-            <div className="h-full overflow-auto custom-scrollbar p-4">
-              {currentView === null ? (
+            <div className="h-full min-h-0 overflow-auto custom-scrollbar p-4">
+              {currentView === null && showInput ? (
                 <>
                   {/* XP Display Component */}
                   <div className="mb-4 bg-card border border-border rounded-md p-3 shadow-sm">
@@ -312,7 +352,6 @@ const PopupView: React.FC = () => {
                   <TextInput 
                     text={textToRewrite} 
                     onTextChange={setTextToRewrite} 
-                    onRewriteClick={() => setShowInput(false)}
                   />
                   
                   <ToneSelector 
@@ -320,8 +359,34 @@ const PopupView: React.FC = () => {
                     onChange={setSelectedTone} 
                     onSurpriseMe={handleSurpriseMe}
                   />
+                  
+                  <div className="flex justify-center mt-4">
+                    <button
+                      onClick={handleRewordButtonClick}
+                      disabled={!textToRewrite.trim()}
+                      className="w-full max-w-md py-2.5 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Reword This!
+                    </button>
+                  </div>
                 </>
-              ) : showInput ? (
+              ) : currentView === null && !showInput ? (
+                <div className="space-y-4">
+                  <button
+                    onClick={resetView}
+                    className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
+                  >
+                    ← Back to Home
+                  </button>
+                  
+                  <RewordResult 
+                    originalText={textToRewrite}
+                    tone={selectedTone}
+                    onRewrittenText={handleRewrite}
+                    onRewriteAgain={rewriteAgain}
+                  />
+                </div>
+              ) : currentView === 'battle' ? (
                 <>
                   <button
                     onClick={resetView}
@@ -330,71 +395,26 @@ const PopupView: React.FC = () => {
                     ← Back to Home
                   </button>
                   
-                  <TextInput 
-                    text={textToRewrite} 
-                    onTextChange={setTextToRewrite} 
-                    onRewriteClick={() => setShowInput(false)}
-                  />
-                  
-                  <ToneSelector 
-                    selectedTone={selectedTone} 
-                    onChange={setSelectedTone} 
-                    onSurpriseMe={handleSurpriseMe}
+                  <RewriteBattle 
+                    originalText={textToRewrite}
+                    onRewriteAgain={rewriteAgain}
                   />
                 </>
-              ) : (
+              ) : currentView === 'custom' ? (
                 <>
-                  {!showInput && (
-                    <div className="space-y-4">
-                      <button
-                        onClick={resetView}
-                        className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
-                      >
-                        ← Back to Home
-                      </button>
-                      
-                      <RewordResult 
-                        originalText={textToRewrite}
-                        tone={selectedTone}
-                        onRewrittenText={handleRewrite}
-                        onRewriteAgain={rewriteAgain}
-                      />
-                    </div>
-                  )}
+                  <button
+                    onClick={resetView}
+                    className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
+                  >
+                    ← Back to Home
+                  </button>
                   
-                  {currentView === 'battle' && (
-                    <>
-                      <button
-                        onClick={resetView}
-                        className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
-                      >
-                        ← Back to Home
-                      </button>
-                      
-                      <RewriteBattle 
-                        originalText={textToRewrite}
-                        onRewriteAgain={rewriteAgain}
-                      />
-                    </>
-                  )}
-                  
-                  {currentView === 'custom' && (
-                    <>
-                      <button
-                        onClick={resetView}
-                        className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
-                      >
-                        ← Back to Home
-                      </button>
-                      
-                      <CustomToneBuilder
-                        originalText={textToRewrite}
-                        onRewriteAgain={rewriteAgain}
-                      />
-                    </>
-                  )}
+                  <CustomToneBuilder
+                    originalText={textToRewrite}
+                    onRewriteAgain={rewriteAgain}
+                  />
                 </>
-              )}
+              ) : null}
             </div>
           )}
         </div>
@@ -499,20 +519,32 @@ const RewordResult: React.FC<{
 }> = ({ originalText, tone, onRewrittenText, onRewriteAgain }) => {
   const { rewrite, isLoading, rewrittenText, error } = useRewrite()
   const [copied, setCopied] = useState(false)
+  const [hasTriggeredRewrite, setHasTriggeredRewrite] = useState(false)
+  const [hasNotifiedParent, setHasNotifiedParent] = useState(false)
   
   // Trigger rewrite on component mount
   useEffect(() => {
-    if (originalText) {
-      rewrite(originalText, tone)
+    if (!hasTriggeredRewrite && originalText) {
+      const doRewrite = async () => {
+        try {
+          setHasTriggeredRewrite(true)
+          await rewrite(originalText, tone)
+        } catch (error) {
+          console.error("Error during rewrite:", error)
+        }
+      }
+      
+      doRewrite()
     }
-  }, [originalText, tone])
+  }, [originalText, tone, rewrite, hasTriggeredRewrite])
   
   // Pass the rewritten text up to the parent when it's ready
   useEffect(() => {
-    if (rewrittenText) {
+    if (rewrittenText && !hasNotifiedParent) {
       onRewrittenText(rewrittenText)
+      setHasNotifiedParent(true)
     }
-  }, [rewrittenText])
+  }, [rewrittenText, onRewrittenText, hasNotifiedParent])
   
   // Copy text to clipboard
   const copyToClipboard = () => {
@@ -595,10 +627,9 @@ const RewordResult: React.FC<{
 interface TextInputProps {
   text: string
   onTextChange: (text: string) => void
-  onRewriteClick: () => void
 }
 
-const TextInput: React.FC<TextInputProps> = ({ text, onTextChange, onRewriteClick }) => {
+const TextInput: React.FC<TextInputProps> = ({ text, onTextChange }) => {
   return (
     <div className="mb-4">
       <div className="border border-border rounded-md bg-card overflow-hidden">
@@ -608,15 +639,6 @@ const TextInput: React.FC<TextInputProps> = ({ text, onTextChange, onRewriteClic
           placeholder="Enter text to rewrite..."
           className="w-full min-h-[150px] p-3 bg-transparent resize-none focus:outline-none"
         />
-      </div>
-      <div className="flex justify-end mt-2">
-        <button
-          onClick={onRewriteClick}
-          disabled={!text.trim()}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Rewrite
-        </button>
       </div>
     </div>
   )

@@ -54,8 +54,13 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
   if (!versionA && !versionB && !isLoading) {
     return (
       <div className="mt-4 flex flex-col items-center">
+        <div className="mb-4 bg-muted/30 p-3 rounded-md w-full">
+          <h4 className="text-xs font-medium text-muted-foreground mb-2">Original Text</h4>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{originalText}</p>
+        </div>
+        
         <p className="text-sm text-muted-foreground mb-4">
-          Generate two different rewrites and compare them side-by-side
+          Generate two different rewrites and compare them
         </p>
         <button
           onClick={generateBattle}
@@ -70,6 +75,11 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
 
   return (
     <div className="mt-4">
+      <div className="mb-4 bg-muted/30 p-3 rounded-md">
+        <h4 className="text-xs font-medium text-muted-foreground mb-2">Original Text</h4>
+        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{originalText}</p>
+      </div>
+      
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium">Choose Your Favorite Rewrite</h3>
         <button 
@@ -85,7 +95,7 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-4">
           {/* Version A */}
           <div className={`p-3 border rounded-md ${selectedVersion === 'A' ? 'border-primary bg-primary/5' : 'border-border'}`}>
             <div className="flex justify-between items-start mb-2">
