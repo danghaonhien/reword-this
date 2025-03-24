@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import PopupView from './pages/PopupView'
+import DarkModeToggle from './components/DarkModeToggle'
 
 function App() {
   const [selectedText, setSelectedText] = useState<string>('')
@@ -24,7 +25,8 @@ function App() {
   }, [])
 
   return (
-    <div className="w-[400px] min-h-[500px] p-4 bg-background text-foreground">
+    <div className="w-[400px] min-h-[500px] p-5 bg-background text-foreground shadow-xl rounded-lg relative">
+      <DarkModeToggle />
       <PopupView initialText={selectedText} />
     </div>
   )
