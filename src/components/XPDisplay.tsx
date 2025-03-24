@@ -14,6 +14,24 @@ const xpGoals = [
   { id: 'surprise', label: 'Use Surprise Me', max: 5, current: 1, xp: 15 }
 ]
 
+// Fun level titles based on wordsmith progression
+const getLevelTitle = (level: number): string => {
+  const titles = [
+    "Word Novice",             // Level 1
+    "Phrase Apprentice",       // Level 2
+    "Sentence Crafter",        // Level 3
+    "Expression Artisan",      // Level 4
+    "Tone Virtuoso",           // Level 5
+    "Wordsmith Wizard",        // Level 6
+    "Lexical Alchemist",       // Level 7
+    "Prose Mastermind",        // Level 8
+    "Language Luminary",       // Level 9
+    "Reword Royalty"           // Level 10+
+  ];
+  
+  return level <= titles.length ? titles[level - 1] : "Reword Legend";
+}
+
 const XPDisplay: React.FC<XPDisplayProps> = ({ xp, streak }) => {
   // Calculate level based on XP
   const level = Math.floor(xp / 100) + 1
@@ -21,12 +39,18 @@ const XPDisplay: React.FC<XPDisplayProps> = ({ xp, streak }) => {
   // Calculate progress to next level
   const progressPercent = (xp % 100)
   
+  // Get the fun level title
+  const levelTitle = getLevelTitle(level)
+  
   return (
     <div className="mb-4 bg-card border border-border rounded-md p-3 shadow-sm">
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-1.5">
           <Trophy className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium">Level {level}</span>
+          <div>
+            <span className="text-sm font-medium">{levelTitle}</span>
+            <span className="text-xs text-muted-foreground ml-1.5">Lvl {level}</span>
+          </div>
         </div>
         <div className="flex items-center gap-1.5">
           <Flame className="w-4 h-4 text-accent" />

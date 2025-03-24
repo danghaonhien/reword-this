@@ -1,7 +1,13 @@
 import React from 'react'
 import { Wand2 } from 'lucide-react'
+import DarkModeToggle from './DarkModeToggle'
+import RewordHistory from './RewordHistory'
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onSelectHistoryItem?: (text: string) => void
+}
+
+const Header: React.FC<HeaderProps> = ({ onSelectHistoryItem }) => {
   return (
     <div className="flex items-center justify-between mb-5 pb-3 border-b border-border">
       <div className="flex items-center gap-2">
@@ -12,8 +18,12 @@ const Header: React.FC = () => {
           Reword This
         </h1>
       </div>
-      <div className="text-xs bg-primary/10 px-2 py-1 rounded-full text-primary">
-        v1.0.0
+      <div className="flex items-center gap-2">
+        <div className="text-xs bg-primary/10 px-2 py-1 rounded-full text-primary">
+          v1.0.0
+        </div>
+        <RewordHistory onSelectHistoryItem={onSelectHistoryItem} />
+        <DarkModeToggle />
       </div>
     </div>
   )

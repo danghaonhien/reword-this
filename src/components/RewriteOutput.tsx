@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Copy, ArrowLeft, RefreshCw, Check } from 'lucide-react'
 
 interface RewriteOutputProps {
@@ -15,6 +15,45 @@ const RewriteOutput: React.FC<RewriteOutputProps> = ({
   onRewriteAgain,
 }) => {
   const [copied, setCopied] = useState(false);
+
+  // Save to history when a new rewrite is shown
+  useEffect(() => {
+    if (rewrittenText && originalText) {
+      const historyItem = {
+        id: Date.now().toString(),
+        originalText,
+        rewrittenText,
+        tone,
+        timestamp: Date.now()
+      };
+
+      // Get existing history
+      const existingHistory = localStorage.getItem('reword-history');
+      let history = [];
+      
+      if (existingHistory) {
+        try {
+          history = JSON.parse(existingHistory);
+        } catch (error) {
+          console.error('Error parsing history:', error);
+        }
+      }
+      
+      // Add new item to the beginning of the array
+      history.unshift(historyItem);
+      
+      // Keep only the last 10 items
+      if (history.length > 10) {
+        history = history.slice(0, 10);
+      }
+      
+      // Save back to localStorage
+      localStorage.setItem('reword-history', JSON.stringify(history));
+      
+      // Dispatch a custom event to notify components that history has been updated
+      window.dispatchEvent(new Event('rewordHistoryUpdated'));
+    }
+  }, [rewrittenText, originalText, tone]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(rewrittenText)

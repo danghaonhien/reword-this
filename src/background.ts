@@ -26,7 +26,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         url: chrome.runtime.getURL(`index.html?text=${encodeURIComponent(info.selectionText)}`),
         type: 'popup',
         width: 420,
-        height: 600
+        height: 580
       });
     }
   }

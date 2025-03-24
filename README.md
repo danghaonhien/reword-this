@@ -1,59 +1,77 @@
 # Reword This - Chrome Extension
 
-AI-Powered Text Rewriting Chrome Extension that rewrites selected text in various tones.
+A Chrome extension that helps users improve their writing with AI-powered text rewriting capabilities.
 
 ## Features
 
-- **Right-click to Reword** - Highlight text on any website and right-click to reword it
-- **Multiple Tones** - Choose from Clarity, Friendly, Formal, and more
-- **"Surprise Me" Mode** - Get random creative tones for your text
-- **XP and Streak System** - Earn XP and build a streak by rewriting text daily
-- **Privacy-First** - All data stored locally, no server-side logs
+- **Simple Text Rewriting**: Quickly rewrite selected text with different tone options (Clarity, Friendly, Formal, or Surprise Me)
+- **Battle of Rewrites**: Compare two AI-generated rewrites side-by-side and choose the best one
+- **Custom Tone Builder**: Create rewrites by providing a reference sample text in your desired tone or style
+- **Gamification**: Earn XP and build streaks as you use the extension to improve your writing
+- **Context Menu Integration**: Right-click on any selected text on the web to open the extension
 
-## Installation (Development)
+## Installation
 
-1. Clone this repository:
-```bash
-git clone https://github.com/yourusername/reword-this.git
-cd reword-this
-```
+### Development Mode
 
+1. Clone this repository
 2. Install dependencies:
-```bash
-npm install
-```
-
-3. Build the extension:
-```bash
-npm run build
-```
-
+   ```
+   npm install
+   ```
+3. Run the development server:
+   ```
+   npm run dev
+   ```
 4. Load the extension in Chrome:
-   - Open Chrome and go to `chrome://extensions/`
-   - Enable "Developer Mode" at the top right
-   - Click "Load unpacked" and select the `dist` directory
+   - Open Chrome and navigate to `chrome://extensions/`
+   - Enable "Developer mode" in the top right
+   - Click "Load unpacked"
+   - Select the `dist` folder from this project
 
-## Development
+### Production Build
 
-Run the development server:
-```bash
-npm run dev
-```
-
-This will allow you to test the UI in your browser at `http://localhost:5173/`.
+1. Build the extension:
+   ```
+   npm run build
+   ```
+2. The built extension will be in the `dist` folder
+3. Load it in Chrome as described above
 
 ## Usage
 
-1. Highlight any text on a webpage
-2. Right-click and select "Reword This"
-3. Choose a tone or click "Surprise Me"
-4. Copy the rewritten text or use the Replace button
+1. Select text on any webpage
+2. Right-click and select "Reword This" from the context menu
+3. Use the popup to select your desired tone
+4. Click "Reword This!" to generate a rewritten version
+5. Use "Battle of Rewrites" to compare two different rewrites
+6. Use "Custom Tone" to create a rewrite based on a reference sample
 
-## Privacy
+## Tech Stack
 
-- All user data is stored locally in your browser
-- No text is logged or stored on any external servers
-- The extension does not track your browsing history
+- React
+- TypeScript
+- Vite
+- TailwindCSS
+- CRXJS
+
+## Project Structure
+
+- `src/`: Source code
+  - `components/`: UI components
+  - `hooks/`: Custom React hooks
+  - `pages/`: Top-level page components
+  - `background.ts`: Chrome extension background script
+  - `content.ts`: Chrome extension content script
+  - `manifest.json`: Chrome extension manifest
+
+## Development
+
+This project uses Vite for fast development and building. Key commands:
+
+- `npm run dev`: Start development server
+- `npm run build`: Build for production
+- `npm run preview`: Preview production build locally
 
 ## License
 
