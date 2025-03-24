@@ -254,7 +254,7 @@ const PopupView: React.FC = () => {
       {/* Main content area */}
       <div className="flex-1 flex flex-col h-full min-h-screen overflow-hidden">
         {/* Main content - conditionally render based on current view */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden flex flex-col">
           {currentView === 'rewards' ? (
             <div className="h-full min-h-0 overflow-auto custom-scrollbar p-4">
               <button
@@ -339,11 +339,11 @@ const PopupView: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="h-full min-h-0 overflow-auto custom-scrollbar p-4">
+            <div className="flex flex-col h-full min-h-0 p-4">
               {currentView === null && showInput ? (
                 <>
                   {/* XP Display Component */}
-                  <div className="mb-4 bg-card border border-border rounded-md p-3 shadow-sm">
+                  <div className="bg-card border border-border rounded-md p-3 shadow-sm mb-4">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-1.5">
                         <Trophy className="w-4 h-4 text-primary" />
@@ -376,87 +376,106 @@ const PopupView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Rewrite Result (when available) */}
-                  {isRewording ? (
-                    <div className="mb-4 bg-card border border-border rounded-md p-4">
-                      <div className="flex flex-col items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                        <p className="mt-4 text-sm text-center">Rewriting with <span className="capitalize font-medium">{selectedTone}</span> tone...</p>
-                      </div>
-                    </div>
-                  ) : rewrite ? (
-                    <div className="mb-4 space-y-4">
-                      <div className="bg-card border border-border rounded-md p-4">
-                        <div className="flex justify-between items-center mb-3">
-                          <h3 className="text-sm font-medium">Rewritten with <span className="capitalize">{selectedTone}</span> tone</h3>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(rewrite)
-                                .catch(err => console.error('Failed to copy text:', err))
-                            }}
-                            className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                          >
-                            Copy
-                          </button>
+                  {/* Content Container - flex-grow to push controls to bottom */}
+                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1">
+                    {/* Rewrite Result (when available) */}
+                    {isRewording ? (
+                      <div className="mb-4 bg-card border border-border rounded-md p-4">
+                        <div className="flex flex-col items-center justify-center py-4">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                          <p className="mt-4 text-sm text-center">Rewriting with <span className="capitalize font-medium">{selectedTone}</span> tone...</p>
                         </div>
-                        
-                        <p className="text-sm whitespace-pre-wrap">{rewrite}</p>
                       </div>
-                      
-                      <div className="flex justify-end">
-                        <button
-                          onClick={rewriteAgain}
-                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-border hover:bg-muted/30 transition-colors"
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                          Rewrite Again
-                        </button>
+                    ) : rewrite ? (
+                      <div className="mb-4">
+                        <div className="bg-card border border-border rounded-md p-4">
+                          <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-sm font-medium">Rewritten with <span className="capitalize">{selectedTone}</span> tone</h3>
+                          </div>
+                          
+                          <div className="max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
+                            <p className="text-sm whitespace-pre-wrap">{rewrite}</p>
+                          </div>
+                          
+                          <div className="flex justify-end gap-2 mt-3 pt-2 border-t border-border">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(rewrite)
+                                  .catch(err => console.error('Failed to copy text:', err))
+                              }}
+                              className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
+                              title="Copy to clipboard"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                              </svg>
+                              Copy
+                            </button>
+                            <button
+                              onClick={rewriteAgain}
+                              className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
+                              title="Regenerate"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                <path d="M3 3v5h5" />
+                                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                                <path d="M16 21h5v-5" />
+                              </svg>
+                              Regenerate
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ) : null}
+                    ) : null}
 
-                  {/* Collapsible Text Input (collapsed when rewrite is available) */}
-                  <div className={`${rewrite || isRewording ? 'border border-border rounded-md overflow-hidden' : ''}`}>
-                    {(rewrite || isRewording) && (
-                      <button 
-                        onClick={() => {
-                          setRewrite('')
-                          setIsRewording(false)
-                        }}
-                        className="w-full py-2 px-3 text-xs text-muted-foreground hover:text-foreground bg-muted/30 flex items-center justify-center"
-                        disabled={isRewording}
-                      >
-                        {isRewording ? 'Rewriting...' : 'Edit Original Text'}
-                      </button>
-                    )}
-                    
-                    {/* Show TextInput when no rewrite is happening or when explicitly editing */}
-                    {(!rewrite && !isRewording) && (
-                      <TextInput 
-                        text={textToRewrite} 
-                        onTextChange={setTextToRewrite} 
-                      />
-                    )}
+                    {/* Collapsible Text Input (collapsed when rewrite is available) */}
+                    <div className={`${rewrite || isRewording ? 'border border-border rounded-md overflow-hidden' : ''}`}>
+                      {(rewrite || isRewording) && (
+                        <button 
+                          onClick={() => {
+                            setRewrite('')
+                            setIsRewording(false)
+                          }}
+                          className="w-full py-2 px-3 text-xs text-muted-foreground hover:text-foreground bg-muted/30 flex items-center justify-center"
+                          disabled={isRewording}
+                        >
+                          {isRewording ? 'Rewriting...' : 'Edit Original Text'}
+                        </button>
+                      )}
+                      
+                      {/* Show TextInput when no rewrite is happening or when explicitly editing */}
+                      {(!rewrite && !isRewording) && (
+                        <TextInput 
+                          text={textToRewrite} 
+                          onTextChange={setTextToRewrite} 
+                        />
+                      )}
+                    </div>
                   </div>
                   
-                  <ToneSelector 
-                    selectedTone={selectedTone} 
-                    onChange={setSelectedTone} 
-                    onSurpriseMe={handleSurpriseMe}
-                  />
-                  
-                  <div className="flex justify-center mt-4">
-                    <button
-                      onClick={handleRewordButtonClick}
-                      disabled={!textToRewrite.trim() || isRewording}
-                      className="w-full max-w-md py-2.5 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isRewording ? 'Rewriting...' : 'Reword This!'}
-                    </button>
+                  {/* Fixed Bottom Section with Tone Selector and Buttons - Now at bottom of page */}
+                  <div className="mt-auto pt-4 border-t border-border">
+                    <ToneSelector 
+                      selectedTone={selectedTone} 
+                      onChange={setSelectedTone} 
+                      onSurpriseMe={handleSurpriseMe}
+                    />
+                    
+                    <div className="flex justify-center mt-4 mb-1">
+                      <button
+                        onClick={handleRewordButtonClick}
+                        disabled={!textToRewrite.trim() || isRewording}
+                        className="w-full max-w-md py-2.5 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isRewording ? 'Rewriting...' : 'Reword This!'}
+                      </button>
+                    </div>
                   </div>
                 </>
               ) : currentView === null && !showInput ? (
-                <div className="space-y-4">
+                <div className="flex flex-col h-full">
                   <button
                     onClick={resetView}
                     className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
@@ -464,15 +483,17 @@ const PopupView: React.FC = () => {
                     ← Back to Home
                   </button>
                   
-                  <RewordResult 
-                    originalText={textToRewrite}
-                    tone={selectedTone}
-                    onRewrittenText={handleRewrite}
-                    onRewriteAgain={rewriteAgain}
-                  />
+                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1">
+                    <RewordResult 
+                      originalText={textToRewrite}
+                      tone={selectedTone}
+                      onRewrittenText={handleRewrite}
+                      onRewriteAgain={rewriteAgain}
+                    />
+                  </div>
                 </div>
               ) : currentView === 'battle' ? (
-                <>
+                <div className="flex flex-col h-full">
                   <button
                     onClick={resetView}
                     className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
@@ -480,13 +501,15 @@ const PopupView: React.FC = () => {
                     ← Back to Home
                   </button>
                   
-                  <RewriteBattle 
-                    originalText={textToRewrite}
-                    onRewriteAgain={rewriteAgain}
-                  />
-                </>
+                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1">
+                    <RewriteBattle 
+                      originalText={textToRewrite}
+                      onRewriteAgain={rewriteAgain}
+                    />
+                  </div>
+                </div>
               ) : currentView === 'custom' ? (
-                <>
+                <div className="flex flex-col h-full">
                   <button
                     onClick={resetView}
                     className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
@@ -494,11 +517,13 @@ const PopupView: React.FC = () => {
                     ← Back to Home
                   </button>
                   
-                  <CustomToneBuilder
-                    originalText={textToRewrite}
-                    onRewriteAgain={rewriteAgain}
-                  />
-                </>
+                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1">
+                    <CustomToneBuilder
+                      originalText={textToRewrite}
+                      onRewriteAgain={rewriteAgain}
+                    />
+                  </div>
+                </div>
               ) : null}
             </div>
           )}
@@ -677,15 +702,38 @@ const RewordResult: React.FC<{
       <div className="bg-card border border-border rounded-md p-4">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-sm font-medium">Rewritten with <span className="capitalize">{tone}</span> tone</h3>
-          <button
-            onClick={copyToClipboard}
-            className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-          >
-            {copied ? 'Copied!' : 'Copy'}
-          </button>
         </div>
         
-        <p className="text-sm whitespace-pre-wrap">{rewrittenText}</p>
+        <div className="max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
+          <p className="text-sm whitespace-pre-wrap">{rewrittenText}</p>
+        </div>
+        
+        <div className="flex justify-end gap-2 mt-3 pt-2 border-t border-border">
+          <button
+            onClick={copyToClipboard}
+            className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
+            title="Copy to clipboard"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+            </svg>
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+          <button
+            onClick={onRewriteAgain}
+            className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
+            title="Regenerate"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+              <path d="M16 21h5v-5" />
+            </svg>
+            Regenerate
+          </button>
+        </div>
       </div>
       
       <div className="space-y-2">
@@ -693,16 +741,6 @@ const RewordResult: React.FC<{
         <div className="bg-muted/30 p-3 rounded-md">
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">{originalText}</p>
         </div>
-      </div>
-      
-      <div className="flex justify-end">
-        <button
-          onClick={onRewriteAgain}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-border hover:bg-muted/30 transition-colors"
-        >
-          <RotateCcw className="w-3 h-3" />
-          Rewrite Again
-        </button>
       </div>
     </div>
   )
@@ -716,13 +754,13 @@ interface TextInputProps {
 
 const TextInput: React.FC<TextInputProps> = ({ text, onTextChange }) => {
   return (
-    <div className="mb-4">
+    <div className="mb-0">
       <div className="border border-border rounded-md bg-card overflow-hidden">
         <textarea
           value={text}
           onChange={(e) => onTextChange(e.target.value)}
           placeholder="Enter text to rewrite..."
-          className="w-full min-h-[150px] p-3 bg-transparent resize-none focus:outline-none"
+          className="w-full h-[150px] p-3 bg-transparent resize-none focus:outline-none"
         />
       </div>
     </div>
