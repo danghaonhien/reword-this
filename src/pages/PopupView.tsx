@@ -404,7 +404,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                             <h3 className="text-sm font-medium">Rewritten with <span className="capitalize">{selectedTone}</span> tone</h3>
                           </div>
                           
-                          <div className="max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+                          <div className="max-h-[240px] overflow-y-auto ">
                             <p className="text-sm whitespace-pre-wrap">{rewrite}</p>
                           </div>
                           
@@ -456,7 +456,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                     ) : null}
 
                     {/* Collapsible Text Input (collapsed when rewrite is available) */}
-                    <div className={`${rewrite || isRewording ? 'border border-border rounded-md overflow-hidden' : ''}`}>
+                    <div className={`${rewrite || isRewording ? ' rounded-md overflow-hidden' : ''}`}>
                       {(!rewrite && !isRewording) && (
                         <TextInput 
                           text={textToRewrite} 
