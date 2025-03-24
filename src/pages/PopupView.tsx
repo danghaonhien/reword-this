@@ -48,8 +48,12 @@ interface HistoryItem {
   timestamp: number
 }
 
-const PopupView: React.FC = () => {
-  const [textToRewrite, setTextToRewrite] = useState('')
+interface PopupViewProps {
+  selectedText?: string
+}
+
+const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
+  const [textToRewrite, setTextToRewrite] = useState(selectedText)
   const [rewrite, setRewrite] = useState('')
   const [isRewording, setIsRewording] = useState(false)
   const [selectedTone, setSelectedTone] = useState('clarity')
@@ -94,6 +98,13 @@ const PopupView: React.FC = () => {
       document.documentElement.classList.remove('dark')
     }
   }, [isDarkMode])
+  
+  // Update textToRewrite when selectedText changes
+  useEffect(() => {
+    if (selectedText) {
+      setTextToRewrite(selectedText)
+    }
+  }, [selectedText])
   
   // Load history on mount and when it updates
   const loadHistory = () => {
@@ -252,7 +263,7 @@ const PopupView: React.FC = () => {
   return (
     <div className="flex flex-grow h-full min-h-screen bg-background">
       {/* Main content area */}
-      <div className="flex-1 flex flex-col h-full min-h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col h-screen relative">
         {/* Main content - conditionally render based on current view */}
         <div className="flex-1 overflow-hidden flex flex-col">
           {currentView === 'rewards' ? (
@@ -377,7 +388,7 @@ const PopupView: React.FC = () => {
                   </div>
 
                   {/* Content Container - flex-grow to push controls to bottom */}
-                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1">
+                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1 pb-32">
                     {/* Rewrite Result (when available) */}
                     {isRewording ? (
                       <div className="mb-4 bg-card border border-border rounded-md p-4">
@@ -393,11 +404,25 @@ const PopupView: React.FC = () => {
                             <h3 className="text-sm font-medium">Rewritten with <span className="capitalize">{selectedTone}</span> tone</h3>
                           </div>
                           
-                          <div className="max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
+                          <div className="max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
                             <p className="text-sm whitespace-pre-wrap">{rewrite}</p>
                           </div>
                           
                           <div className="flex justify-end gap-2 mt-3 pt-2 border-t border-border">
+                            <button
+                              onClick={() => {
+                                setRewrite('')
+                                setIsRewording(false)
+                              }}
+                              className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
+                              title="Edit original text"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                              Edit
+                            </button>
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(rewrite)
@@ -432,20 +457,6 @@ const PopupView: React.FC = () => {
 
                     {/* Collapsible Text Input (collapsed when rewrite is available) */}
                     <div className={`${rewrite || isRewording ? 'border border-border rounded-md overflow-hidden' : ''}`}>
-                      {(rewrite || isRewording) && (
-                        <button 
-                          onClick={() => {
-                            setRewrite('')
-                            setIsRewording(false)
-                          }}
-                          className="w-full py-2 px-3 text-xs text-muted-foreground hover:text-foreground bg-muted/30 flex items-center justify-center"
-                          disabled={isRewording}
-                        >
-                          {isRewording ? 'Rewriting...' : 'Edit Original Text'}
-                        </button>
-                      )}
-                      
-                      {/* Show TextInput when no rewrite is happening or when explicitly editing */}
                       {(!rewrite && !isRewording) && (
                         <TextInput 
                           text={textToRewrite} 
@@ -456,14 +467,14 @@ const PopupView: React.FC = () => {
                   </div>
                   
                   {/* Fixed Bottom Section with Tone Selector and Buttons - Now at bottom of page */}
-                  <div className="mt-auto pt-4 border-t border-border">
+                  <div className="absolute bottom-4 left-4 right-4 pt-4 border-border bg-background z-10 shadow-sm">
                     <ToneSelector 
                       selectedTone={selectedTone} 
                       onChange={setSelectedTone} 
                       onSurpriseMe={handleSurpriseMe}
                     />
                     
-                    <div className="flex justify-center mt-4 mb-1">
+                    <div className="flex justify-center mt-4">
                       <button
                         onClick={handleRewordButtonClick}
                         disabled={!textToRewrite.trim() || isRewording}
@@ -704,7 +715,7 @@ const RewordResult: React.FC<{
           <h3 className="text-sm font-medium">Rewritten with <span className="capitalize">{tone}</span> tone</h3>
         </div>
         
-        <div className="max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
+        <div className="max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
           <p className="text-sm whitespace-pre-wrap">{rewrittenText}</p>
         </div>
         
@@ -760,7 +771,7 @@ const TextInput: React.FC<TextInputProps> = ({ text, onTextChange }) => {
           value={text}
           onChange={(e) => onTextChange(e.target.value)}
           placeholder="Enter text to rewrite..."
-          className="w-full h-[150px] p-3 bg-transparent resize-none focus:outline-none"
+          className="w-full h-[250px] p-3 bg-transparent resize-none focus:outline-none"
         />
       </div>
     </div>
