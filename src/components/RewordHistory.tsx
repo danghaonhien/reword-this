@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { History, X, Copy, Clock } from 'lucide-react'
+import { History, X, Copy, Clock, ChevronDown } from 'lucide-react'
 
 // Type for history items
 interface HistoryItem {
@@ -14,16 +14,19 @@ interface RewordHistoryProps {
   onSelectHistoryItem?: (text: string) => void
   hideLabel?: boolean
   fullPage?: boolean
+  showLimited?: boolean
 }
 
 const RewordHistory: React.FC<RewordHistoryProps> = ({ 
   onSelectHistoryItem, 
   hideLabel = false,
-  fullPage = false 
+  fullPage = false,
+  showLimited = false
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [copied, setCopied] = useState<string | null>(null)
+  const [showAll, setShowAll] = useState(false)
 
   // Function to load history from localStorage
   const loadHistory = () => {
@@ -107,60 +110,83 @@ const RewordHistory: React.FC<RewordHistoryProps> = ({
     }
   }
 
-  // If fullPage is true, render just the history items
-  if (fullPage) {
-    return (
-      <>
-        {history.length === 0 ? (
-          <div className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-md p-4">
-            No history yet. Start rewriting to build history!
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {history.map((item) => (
-              <div key={item.id} className="border border-border rounded-md p-2 text-xs">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="capitalize font-medium text-xs">{item.tone} tone</span>
-                  <span className="text-xxs text-muted-foreground">{formatDate(item.timestamp)}</span>
-                </div>
-                
-                <div className="bg-muted/30 p-1.5 rounded-sm mb-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => selectHistoryItem(item.rewrittenText)}>
-                  {item.rewrittenText.length > 80 
-                    ? `${item.rewrittenText.substring(0, 80)}...` 
-                    : item.rewrittenText
-                  }
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-xxs text-muted-foreground line-clamp-1">
-                    {item.originalText.length > 40 
-                      ? `${item.originalText.substring(0, 40)}...` 
-                      : item.originalText
-                    }
-                  </span>
-                  <button
-                    onClick={() => handleCopy(item.rewrittenText, item.id)}
-                    className="p-1 rounded-full hover:bg-secondary/10"
-                  >
-                    {copied === item.id ? (
-                      <span className="text-xxs text-secondary">Copied!</span>
-                    ) : (
-                      <Copy className="w-3 h-3 text-muted-foreground" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </>
-    )
+  // Get the items to display
+  const getDisplayItems = () => {
+    if (!showLimited || showAll) {
+      return history;
+    }
+    return history.slice(0, 3);
   }
+
+  const displayItems = getDisplayItems();
+  const hasMoreItems = showLimited && !showAll && history.length > 3;
 
   // If hideLabel is true, just return the icon
   if (hideLabel) {
     return <History className="w-4 h-4" onClick={toggleHistory} />
+  }
+
+  // For fullPage view
+  if (fullPage) {
+    return (
+      <div className="space-y-3">
+        {history.length === 0 ? (
+          <div className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-md">
+            No history yet. Start rewriting to build history!
+          </div>
+        ) : (
+          <>
+            <div className="space-y-3">
+              {displayItems.map((item) => (
+                <div key={item.id} className="border border-border rounded-md p-2 text-xs">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="capitalize font-medium text-xs">{item.tone} tone</span>
+                    <span className="text-xxs text-muted-foreground">{formatDate(item.timestamp)}</span>
+                  </div>
+                  
+                  <div className="bg-muted/30 p-1.5 rounded-sm mb-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => selectHistoryItem(item.rewrittenText)}>
+                    {item.rewrittenText.length > 80 
+                      ? `${item.rewrittenText.substring(0, 80)}...` 
+                      : item.rewrittenText
+                    }
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xxs text-muted-foreground line-clamp-1">
+                      {item.originalText.length > 40 
+                        ? `${item.originalText.substring(0, 40)}...` 
+                        : item.originalText
+                      }
+                    </span>
+                    <button
+                      onClick={() => handleCopy(item.rewrittenText, item.id)}
+                      className="p-1 rounded-full hover:bg-secondary/10"
+                    >
+                      {copied === item.id ? (
+                        <span className="text-xxs text-secondary">Copied!</span>
+                      ) : (
+                        <Copy className="w-3 h-3 text-muted-foreground" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {hasMoreItems && (
+              <button
+                onClick={() => setShowAll(true)}
+                className="w-full py-2 text-xs flex items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+                Show more
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -188,14 +214,14 @@ const RewordHistory: React.FC<RewordHistoryProps> = ({
             </button>
           </div>
 
-          <div className="max-h-64 overflow-y-auto p-2">
+          <div className="max-h-64 overflow-y-auto p-2 custom-scrollbar">
             {history.length === 0 ? (
               <div className="text-sm text-muted-foreground text-center py-4">
                 No history yet. Start rewriting to build history!
               </div>
             ) : (
               <div className="space-y-3">
-                {history.map((item) => (
+                {displayItems.map((item) => (
                   <div key={item.id} className="border border-border rounded-md p-2 text-xs">
                     <div className="flex justify-between items-center mb-1">
                       <span className="capitalize font-medium text-xs">{item.tone} tone</span>
@@ -230,6 +256,16 @@ const RewordHistory: React.FC<RewordHistoryProps> = ({
                     </div>
                   </div>
                 ))}
+
+                {hasMoreItems && (
+                  <button
+                    onClick={() => setShowAll(true)}
+                    className="w-full py-2 text-xs flex items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <ChevronDown className="w-3.5 h-3.5" />
+                    Show more
+                  </button>
+                )}
               </div>
             )}
           </div>

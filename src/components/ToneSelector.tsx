@@ -1,5 +1,7 @@
 import React from 'react'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Lock } from 'lucide-react'
+import { useGameification } from '@/hooks/useGameification'
+import { UnlockableTone } from '@/hooks/gameificationTypes'
 
 interface ToneSelectorProps {
   selectedTone: string
@@ -7,11 +9,11 @@ interface ToneSelectorProps {
   onSurpriseMe: () => void
 }
 
-const tones = [
+const baseTones = [
   { id: 'clarity', label: 'Clarity' },
   { id: 'friendly', label: 'Friendly' },
   { id: 'formal', label: 'Formal' },
-  // Free tier has limited tones
+  // Base tones always available
 ]
 
 const ToneSelector: React.FC<ToneSelectorProps> = ({ 
@@ -19,6 +21,21 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
   onChange, 
   onSurpriseMe 
 }) => {
+  const { unlockableTones } = useGameification()
+  
+  // Combine base tones with unlocked tones
+  const allTones = [
+    ...baseTones,
+    ...unlockableTones
+      .filter(tone => tone.unlocked)
+      .map(tone => ({ id: tone.id, label: tone.name }))
+  ]
+  
+  // Get locked tones to display
+  const lockedTones = unlockableTones
+    .filter(tone => !tone.unlocked)
+    .slice(0, 2) // Only show up to 2 locked tones to avoid cluttering the UI
+  
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium mb-2 flex items-center gap-1">
@@ -27,7 +44,7 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
       </label>
       
       <div className="grid grid-cols-3 gap-2 mb-3">
-        {tones.map((tone) => (
+        {allTones.map((tone) => (
           <button
             key={tone.id}
             onClick={() => onChange(tone.id)}
@@ -38,6 +55,33 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
           >
             {tone.label}
           </button>
+        ))}
+        
+        {/* Show locked tones */}
+        {lockedTones.map((tone) => (
+          <div
+            key={tone.id}
+            className="relative py-2 px-3 text-sm rounded-md border border-border
+                      bg-muted/30 text-muted-foreground cursor-default group"
+          >
+            <div className="flex items-center justify-center gap-1.5">
+              <Lock className="w-3 h-3" />
+              {tone.name}
+            </div>
+            
+            {/* Tooltip showing unlock requirements */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48
+                         bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
+                         opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              <div className="text-xs font-medium">{tone.name}</div>
+              <div className="text-xs text-muted-foreground mt-1">{tone.description}</div>
+              <div className="text-xs mt-1 font-medium">
+                Unlock with: {tone.unlockRequirement.type === 'xp' 
+                  ? `${tone.unlockRequirement.value} XP` 
+                  : `${tone.unlockRequirement.value} Day Streak`}
+              </div>
+            </div>
+          </div>
         ))}
       </div>
       
