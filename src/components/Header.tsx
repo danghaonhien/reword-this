@@ -1,7 +1,7 @@
 import React from 'react'
 import { Wand2 } from 'lucide-react'
-import DarkModeToggle from './DarkModeToggle'
 import RewordHistory from './RewordHistory'
+import ThemeSwitcher from './ThemeSwitcher'
 
 interface HeaderProps {
   onSelectHistoryItem?: (text: string) => void
@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ onSelectHistoryItem }) => {
           v1.0.0
         </div>
         <RewordHistory onSelectHistoryItem={onSelectHistoryItem} />
-        <DarkModeToggle />
+        <ThemeSwitcher />
       </div>
     </div>
   )

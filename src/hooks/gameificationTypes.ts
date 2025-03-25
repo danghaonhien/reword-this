@@ -39,7 +39,7 @@ export interface DailyMission {
   id: string
   title: string
   description: string
-  type: 'use_tones' | 'rewrite_words' | 'rewrite_count' | 'battle' | 'custom_tone'
+  type: 'use_tones' | 'rewrite_words' | 'rewrite_count' | 'battle' | 'custom_tone' | 'feedback' | 'checkin'
   goal: number
   progress: number
   completed: boolean
@@ -57,9 +57,12 @@ export interface GameificationResult {
   
   // Core functions
   addXP: (amount: number) => void
+  checkAndUpdateStreak: () => void
   trackToneUsage: (tone: string, wordCount: number) => void
-  trackBattle: () => void
+  trackBattle: (winner: string, loser: string) => void
   trackCustomTone: () => void
+  trackFeedback: () => void
+  trackWordWizard: (wordCount: number) => void
   
   // Feature-specific data and functions
   unlockableTones: UnlockableTone[]
@@ -68,4 +71,8 @@ export interface GameificationResult {
   activeBadge: string | null
   setActiveBadge: (badgeId: string | null) => void
   dailyMissions: DailyMission[]
+  tonesUsedToday: Record<string, number>
+  activeTheme: Theme | null
+  setActiveTheme: (theme: Theme | null) => void
+  completeMission?: (missionId: string) => void
 }

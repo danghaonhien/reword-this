@@ -19,10 +19,14 @@ import RewordHistory from '../components/RewordHistory'
 import RewriteBattle from '../components/RewriteBattle'
 import CustomToneBuilder from '../components/CustomToneBuilder'
 import RewardsPanel from '../components/RewardsPanel'
+import ThemeSwitcher from '../components/ThemeSwitcher'
 import { useRewrite } from '../hooks/useRewrite'
 import { useGameification } from '../hooks/useGameification'
 import { Theme, UnlockableTone, ToneMasterBadge } from '../hooks/gameificationTypes'
 import { calculateProgress, getNextUnlockableTone, getNextUnlockableTheme, getNextUnlockableBadge, getLevelTitle } from '../utils/gameificationUtils'
+import BadgeSelector from '../components/BadgeSelector'
+import ActiveBadgeDisplay from '../components/ActiveBadgeDisplay'
+import RewardNotification from '../components/RewardNotification'
 
 // Get rewards data from gameification system
 const getNextReward = (level: number): { name: string, unlocksAt: number } => {
@@ -70,10 +74,6 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
   const [isRewording, setIsRewording] = useState(false)
   const [selectedTone, setSelectedTone] = useState('clarity')
   const [showInput, setShowInput] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem('reword-dark-mode')
-    return savedMode === 'true' || (savedMode === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  })
   const [currentView, setCurrentView] = useState<'battle' | 'custom' | 'rewards' | 'history' | null>(null)
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([])
   const [showAllHistory, setShowAllHistory] = useState(false)
@@ -87,29 +87,6 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
       window.close()
     }
   }
-
-  // Toggle dark mode and save the preference
-  const toggleTheme = () => {
-    const newMode = !isDarkMode
-    setIsDarkMode(newMode)
-    localStorage.setItem('reword-dark-mode', newMode.toString())
-    
-    // Update document class for dark mode
-    if (newMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }
-
-  // Set dark mode based on saved preference
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [isDarkMode])
   
   // Update textToRewrite when selectedText changes
   useEffect(() => {
@@ -283,6 +260,9 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
     <div className="flex flex-grow h-full min-h-screen bg-background">
       {/* Main content area */}
       <div className="flex-1 flex flex-col h-screen relative">
+        {/* Reward notification component for displaying new unlocks */}
+        <RewardNotification />
+        
         {/* Main content - conditionally render based on current view */}
         <div className="flex-1 overflow-hidden flex flex-col">
           {currentView === 'rewards' ? (
@@ -692,8 +672,15 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
       
       {/* Sidebar - moved to the right */}
       <div className="flex flex-col items-center w-12 py-4 bg-card border-l border-border">
-        {/* Navigation buttons */}
+        {/* Navigation buttons - reordering to put ThemeSwitcher below Custom Tone */}
         <div className="flex flex-col items-center gap-3 mb-auto">
+          {/* Active Badge Display at the top if there's an active badge */}
+          {gameification.activeBadge && (
+            <div className="mb-2">
+              <ActiveBadgeDisplay size="sm" />
+            </div>
+          )}
+          
           <div className="relative group">
             <button 
               onClick={() => setCurrentView('battle')}
@@ -719,6 +706,26 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
               Custom Tone
             </span>
           </div>
+
+          {/* Theme Switcher moved here */}
+          <div className="relative group">
+            <div className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground">
+              <ThemeSwitcher />
+            </div>
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+              Theme
+            </span>
+          </div>
+          
+          {/* Badge Selector - added here */}
+          <div className="relative group">
+            <div className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground">
+              <BadgeSelector />
+            </div>
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+              Badges
+            </span>
+          </div>
           
           <div className="relative group">
             <button 
@@ -734,7 +741,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
           </div>
         </div>
         
-        {/* Bottom controls */}
+        {/* Bottom controls - remove ThemeSwitcher from here */}
         <div className="flex flex-col items-center gap-3 mt-auto">
           <div className="relative group">
             <button
@@ -746,19 +753,6 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             </button>
             <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-10">
               Rewards
-            </span>
-          </div>
-          
-          <div className="relative group">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground"
-              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            >
-              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-10">
-              {isDarkMode ? 'Light Mode' : 'Dark Mode'}
             </span>
           </div>
           

@@ -1,0 +1,288 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+  
+  /* Theme classes for rewards system */
+  
+  /* Standard theme - default styles (from :root) */
+  .theme-standard {
+    /* Uses the default values, no need to redefine */
+  }
+  
+  /* Dark theme */
+  .theme-dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+  
+  /* Focus theme */
+  .theme-focus {
+    --background: 0 0% 98%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221.2 83.2% 53.3%;
+  }
+  
+  /* Nature theme */
+  .theme-nature {
+    --background: 120 20% 95%;
+    --foreground: 220 50% 20%;
+
+    --card: 120 10% 98%;
+    --card-foreground: 220 50% 20%;
+
+    --popover: 120 10% 98%;
+    --popover-foreground: 220 50% 20%;
+
+    --primary: 150 60% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 200 70% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 120 10% 90%;
+    --muted-foreground: 220 20% 40%;
+
+    --accent: 200 70% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 120 15% 85%;
+    --input: 120 15% 85%;
+    --ring: 150 60% 40%;
+  }
+  
+  /* Vibrant theme */
+  .theme-vibrant {
+    --background: 280 50% 97%;
+    --foreground: 280 70% 20%;
+
+    --card: 280 30% 98%;
+    --card-foreground: 280 70% 20%;
+
+    --popover: 280 30% 98%;
+    --popover-foreground: 280 70% 20%;
+
+    --primary: 280 70% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 320 80% 60%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 280 30% 92%;
+    --muted-foreground: 280 40% 40%;
+
+    --accent: 320 80% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 280 40% 85%;
+    --input: 280 40% 85%;
+    --ring: 280 70% 50%;
+  }
+  
+  /* Professional theme */
+  .theme-professional {
+    --background: 215 30% 95%;
+    --foreground: 215 80% 20%;
+
+    --card: 215 20% 98%;
+    --card-foreground: 215 80% 20%;
+
+    --popover: 215 20% 98%;
+    --popover-foreground: 215 80% 20%;
+
+    --primary: 215 70% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 215 30% 90%;
+    --secondary-foreground: 215 80% 20%;
+
+    --muted: 215 20% 90%;
+    --muted-foreground: 215 40% 40%;
+
+    --accent: 215 70% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 215 30% 85%;
+    --input: 215 30% 85%;
+    --ring: 215 70% 40%;
+  }
+  
+  /* Writer's Delight (Premium) theme */
+  .theme-writers-delight {
+    --background: 35 30% 95%;
+    --foreground: 35 80% 10%;
+
+    --card: 35 20% 98%;
+    --card-foreground: 35 80% 10%;
+
+    --popover: 35 20% 98%;
+    --popover-foreground: 35 80% 10%;
+
+    --primary: 35 80% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 35 30% 90%;
+    --secondary-foreground: 35 80% 10%;
+
+    --muted: 35 20% 90%;
+    --muted-foreground: 35 40% 40%;
+
+    --accent: 35 80% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 35 30% 85%;
+    --input: 35 30% 85%;
+    --ring: 35 80% 40%;
+  }
+  
+  /* Custom Accent (Premium) theme - base with primary accents customizable */
+  .theme-custom-accent {
+    /* Default colors, customized primary/accent tones are applied through JavaScript */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Animation for reward notifications */
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideInUp {
+  animation: slideInUp 0.3s ease forwards;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+} 
