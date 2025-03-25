@@ -256,6 +256,36 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
   const displayHistoryItems = getDisplayHistoryItems();
   const hasMoreHistoryItems = !showAllHistory && historyItems.length > 4;
 
+  // Add this somewhere in the main component, perhaps near the top where you define state variables
+  // This is a temporary function for testing themes
+  const unlockAllThemes = () => {
+    const { themes, unlockableTones } = gameification;
+    
+    // Unlock all themes
+    themes.forEach(theme => {
+      if (!theme.unlocked) {
+        // Create a custom event to simulate unlocking
+        const event = new CustomEvent('rewardUnlocked', {
+          detail: {
+            type: 'theme',
+            id: theme.id,
+            name: theme.name
+          }
+        });
+        
+        // Update the theme object
+        theme.unlocked = true;
+        
+        // Dispatch the event
+        window.dispatchEvent(event);
+        
+        console.log(`Unlocked theme: ${theme.name}`);
+      }
+    });
+    
+    console.log('All themes unlocked for testing');
+  };
+
   return (
     <div className="flex flex-grow h-full min-h-screen bg-background">
       {/* Main content area */}
@@ -769,6 +799,19 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             </span>
           </div>
         </div>
+
+        {/* Debug button - REMOVE IN PRODUCTION */}
+        {import.meta.env.DEV && (
+          <div className="mt-auto mb-4">
+            <button
+              onClick={unlockAllThemes}
+              className="p-2 text-xs text-muted-foreground hover:text-foreground"
+              title="Unlock all themes (DEBUG)"
+            >
+              🔓
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

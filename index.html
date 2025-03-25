@@ -36,17 +36,6 @@
         background: rgba(180, 180, 180, 0.8);
       }
     </style>
-    <script>
-      // Initialize dark mode on page load
-      (function() {
-        const isDarkMode = localStorage.getItem('darkMode') === 'true' || 
-          window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        if (isDarkMode) {
-          document.documentElement.classList.add('dark');
-        }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>

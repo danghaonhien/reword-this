@@ -30,23 +30,71 @@ const ThemeSwitcher: React.FC = () => {
 
   // Apply the selected theme to the document
   useEffect(() => {
-    if (!activeTheme) return;
+    if (!activeTheme) {
+      console.log('No active theme to apply');
+      return;
+    }
     
-    console.log('Applying theme from effect:', activeTheme.id);
+    console.log('Applying theme from effect:', activeTheme.id, activeTheme);
     
-    // First remove any existing theme classes
+    // First remove any existing theme classes and dark class
     document.documentElement.classList.forEach(cls => {
-      if (cls.startsWith('theme-')) {
+      if (cls.startsWith('theme-') || cls === 'dark') {
+        console.log('Removing class:', cls);
         document.documentElement.classList.remove(cls);
       }
     });
     
-    // Then add the new theme class
-    document.documentElement.classList.add(`theme-${activeTheme.id}`);
+    // Then add the new theme class using the className property from the theme object
+    const themeClass = activeTheme.className || `theme-${activeTheme.id}`;
+    console.log('Adding theme class:', themeClass);
+    document.documentElement.classList.add(themeClass);
+    
+    // Save the current theme to localStorage
+    localStorage.setItem('activeTheme', activeTheme.id);
+    console.log('Theme saved to localStorage:', activeTheme.id);
+    
+    // For debugging: log all current classes
+    console.log('Current document classes after theme change:', 
+      Array.from(document.documentElement.classList));
   }, [activeTheme]);
 
+  // Load saved theme on component mount and unlock test themes
+  useEffect(() => {
+    // For testing: unlock first few themes
+    const themesToUnlock = ['standard', 'dark', 'focus']; 
+    themesToUnlock.forEach(themeId => {
+      const theme = themes.find(t => t.id === themeId);
+      if (theme && !theme.unlocked) {
+        console.log(`Unlocking theme for testing: ${themeId}`);
+        theme.unlocked = true;
+      }
+    });
+    
+    const savedThemeId = localStorage.getItem('activeTheme');
+    console.log('Loading saved theme from localStorage:', savedThemeId);
+    
+    if (savedThemeId) {
+      const savedTheme = themes.find(t => t.id === savedThemeId && t.unlocked);
+      if (savedTheme) {
+        console.log('Found saved theme, setting as active:', savedTheme);
+        setActiveTheme(savedTheme);
+      } else {
+        console.log('Saved theme not found or not unlocked, using default');
+        // If saved theme not found or not unlocked, use standard theme
+        const standardTheme = themes.find(t => t.id === 'standard');
+        if (standardTheme) setActiveTheme(standardTheme);
+      }
+    } else if (!activeTheme) {
+      // If no saved theme and no active theme, use standard theme
+      console.log('No saved theme, setting standard theme');
+      const standardTheme = themes.find(t => t.id === 'standard');
+      if (standardTheme) setActiveTheme(standardTheme);
+    }
+  }, [themes, setActiveTheme]);
+
   const handleThemeChange = (theme: Theme) => {
-    console.log('Changing theme to:', theme.id);
+    console.log('Changing theme to:', theme.id, theme);
     
     // Update state through the hook - let the useEffect handle the DOM changes
     setActiveTheme(theme);

@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* Make theme class declarations have higher specificity by prefixing with html */
+  html:where(:root) {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -35,7 +36,7 @@
     --radius: 0.5rem;
   }
 
-  .dark {
+  html.dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
@@ -65,15 +66,15 @@
     --ring: 224.3 76.3% 48%;
   }
   
-  /* Theme classes for rewards system */
+  /* Theme classes for rewards system - use html for higher specificity */
   
   /* Standard theme - default styles (from :root) */
-  .theme-standard {
+  html.theme-standard {
     /* Uses the default values, no need to redefine */
   }
   
   /* Dark theme */
-  .theme-dark {
+  html.theme-dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
@@ -104,7 +105,7 @@
   }
   
   /* Focus theme */
-  .theme-focus {
+  html.theme-focus {
     --background: 0 0% 98%;
     --foreground: 222.2 84% 4.9%;
 
@@ -132,7 +133,7 @@
   }
   
   /* Nature theme */
-  .theme-nature {
+  html.theme-nature {
     --background: 120 20% 95%;
     --foreground: 220 50% 20%;
 
@@ -160,7 +161,7 @@
   }
   
   /* Vibrant theme */
-  .theme-vibrant {
+  html.theme-vibrant {
     --background: 280 50% 97%;
     --foreground: 280 70% 20%;
 
@@ -188,7 +189,7 @@
   }
   
   /* Professional theme */
-  .theme-professional {
+  html.theme-professional {
     --background: 215 30% 95%;
     --foreground: 215 80% 20%;
 
@@ -216,7 +217,7 @@
   }
   
   /* Writer's Delight (Premium) theme */
-  .theme-writers-delight {
+  html.theme-writers-delight {
     --background: 35 30% 95%;
     --foreground: 35 80% 10%;
 
@@ -244,7 +245,7 @@
   }
   
   /* Custom Accent (Premium) theme - base with primary accents customizable */
-  .theme-custom-accent {
+  html.theme-custom-accent {
     /* Default colors, customized primary/accent tones are applied through JavaScript */
   }
 }
