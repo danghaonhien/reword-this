@@ -22,6 +22,34 @@ import RewardsPanel from '../components/RewardsPanel'
 import { useRewrite } from '../hooks/useRewrite'
 import { useGameification } from '../hooks/useGameification'
 
+// Get rewards data from gameification system
+const getNextReward = (level: number): { name: string, unlocksAt: number } => {
+  const rewards = [
+    { name: "Basic themes", unlocksAt: 1 },
+    { name: "Professional themes", unlocksAt: 5 },
+    { name: "Premium themes", unlocksAt: 10 },
+    { name: "Advanced styles", unlocksAt: 15 },
+    { name: "Expert tones", unlocksAt: 20 },
+  ];
+  
+  // Find the next reward that hasn't been unlocked yet
+  const nextReward = rewards.find(reward => reward.unlocksAt > level);
+  
+  // If all rewards are unlocked, return the last one
+  return nextReward || rewards[rewards.length - 1];
+}
+
+// Calculate progress to next unlock
+const getRewardProgress = (level: number, nextUnlock: number): number => {
+  // Find the previous unlock level
+  const prevUnlock = nextUnlock <= 5 ? 1 : 
+                     nextUnlock <= 10 ? 5 : 
+                     nextUnlock <= 15 ? 10 : 15;
+  
+  // Calculate progress percentage between previous and next unlock
+  return ((level - prevUnlock) / (nextUnlock - prevUnlock)) * 100;
+}
+
 // Function to get level title based on level
 const getLevelTitle = (level: number): string => {
   const titles = [
@@ -367,9 +395,69 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                         <Flame className="w-4 h-4 text-accent" />
                         <span className="text-sm font-medium">{streak} day streak</span>
                         <Info className="w-3 h-3 text-muted-foreground cursor-help" />
-                        <div className="absolute bottom-full right-0 mb-2 bg-popover text-popover-foreground text-xs p-2 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                          <div className="text-xs">Current streak: {streak}/7 days</div>
-                          <div className="text-xs mt-1">Keep rewriting daily to maintain your streak!</div>
+                        <div className="absolute top-full right-0 mt-2 bg-popover text-popover-foreground text-xs p-3 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 w-64">
+                          <h5 className="font-medium mb-3">Your Progress</h5>
+                          
+                          <div className="space-y-3">
+                            {/* Level Progress */}
+                            <div>
+                              <div className="flex justify-between mb-1">
+                                <span>Level Progress</span>
+                                <span>{xp % 100}/100 XP</span>
+                              </div>
+                              <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
+                                <div 
+                                  className="bg-primary h-full rounded-full transition-all duration-500 ease-out" 
+                                  style={{ width: `${xp % 100}%` }}
+                                />
+                              </div>
+                              <div className="text-xxs text-muted-foreground mt-1">
+                                {100 - (xp % 100)} XP needed for level {level + 1}
+                              </div>
+                            </div>
+                            
+                            {/* Streak Progress */}
+                            <div>
+                              <div className="flex justify-between mb-1">
+                                <span>Streak Progress</span>
+                                <span>{streak}/7 days</span>
+                              </div>
+                              <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
+                                <div 
+                                  className="bg-accent h-full rounded-full transition-all duration-500 ease-out" 
+                                  style={{ width: `${(streak / 7) * 100}%` }}
+                                />
+                              </div>
+                              <div className="text-xxs text-muted-foreground mt-1">
+                                {streak >= 7 ? 'Streak complete! Keep going!' : `${7 - streak} more day${7 - streak !== 1 ? 's' : ''} to complete streak`}
+                              </div>
+                            </div>
+                            
+                            {/* Next Reward - Dynamically calculated */}
+                            {(() => {
+                              const nextReward = getNextReward(level);
+                              const progress = getRewardProgress(level, nextReward.unlocksAt);
+                              const levelsAway = nextReward.unlocksAt - level;
+                              
+                              return (
+                                <div>
+                                  <div className="flex justify-between mb-1">
+                                    <span>Next Reward</span>
+                                    <span>{levelsAway > 0 ? `${levelsAway} level${levelsAway !== 1 ? 's' : ''} away` : 'Unlocked!'}</span>
+                                  </div>
+                                  <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
+                                    <div 
+                                      className="bg-primary h-full rounded-full transition-all duration-500 ease-out" 
+                                      style={{ width: `${progress}%` }}
+                                    />
+                                  </div>
+                                  <div className="text-xxs text-muted-foreground mt-1">
+                                    {nextReward.name}{levelsAway > 0 ? ` at level ${nextReward.unlocksAt}` : ' (unlocked)'}
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -553,7 +641,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             >
               <Swords className="w-4 h-4" />
             </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
               Rewrite Battle
             </span>
           </div>
@@ -566,7 +654,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             >
               <Palette className="w-4 h-4" />
             </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
               Custom Tone
             </span>
           </div>
@@ -579,7 +667,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             >
               <History className="w-4 h-4" />
             </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
               History
             </span>
           </div>
@@ -595,7 +683,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             >
               <Sparkles className="w-4 h-4" />
             </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
               Rewards
             </span>
           </div>
@@ -608,7 +696,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
               {isDarkMode ? 'Light Mode' : 'Dark Mode'}
             </span>
           </div>
@@ -621,12 +709,82 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             >
               <X className="w-4 h-4" />
             </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
               Close
             </span>
           </div>
         </div>
       </div>
+
+      {/* Mobile bottom navigation - visible only on small screens */}
+      {currentView === null && (
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around py-2 px-1 z-20">
+          <div className="relative group">
+            <button 
+              onClick={() => setCurrentView('battle')}
+              className={`p-2 rounded-full ${currentView === 'battle' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
+              title="Battle Rewrite"
+            >
+              <Swords className="w-4 h-4" />
+            </button>
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
+              Rewrite Battle
+            </span>
+          </div>
+          
+          <div className="relative group">
+            <button 
+              onClick={() => setCurrentView('custom')}
+              className={`p-2 rounded-full ${currentView === 'custom' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
+              title="Custom Tone Rewrite"
+            >
+              <Palette className="w-4 h-4" />
+            </button>
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
+              Custom Tone
+            </span>
+          </div>
+          
+          <div className="relative group">
+            <button 
+              onClick={() => setCurrentView('history')}
+              className={`p-2 rounded-full ${currentView === 'history' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
+              title="Rewrite History"
+            >
+              <History className="w-4 h-4" />
+            </button>
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
+              History
+            </span>
+          </div>
+          
+          <div className="relative group">
+            <button
+              onClick={() => setCurrentView('rewards')}
+              className={`p-2 rounded-full ${currentView === 'rewards' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
+              title="Rewards"
+            >
+              <Sparkles className="w-4 h-4" />
+            </button>
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
+              Rewards
+            </span>
+          </div>
+          
+          <div className="relative group">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground"
+              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-50">
+              {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
