@@ -21,23 +21,35 @@ import CustomToneBuilder from '../components/CustomToneBuilder'
 import RewardsPanel from '../components/RewardsPanel'
 import { useRewrite } from '../hooks/useRewrite'
 import { useGameification } from '../hooks/useGameification'
+import { Theme, UnlockableTone, ToneMasterBadge } from '../hooks/gameificationTypes'
+import { calculateProgress, getNextUnlockableTone, getNextUnlockableTheme, getNextUnlockableBadge, getLevelTitle } from '../utils/gameificationUtils'
 
-// Function to get level title based on level
-const getLevelTitle = (level: number): string => {
-  const titles = [
-    "Word Novice",             // Level 1
-    "Phrase Apprentice",       // Level 2
-    "Sentence Crafter",        // Level 3
-    "Expression Artisan",      // Level 4
-    "Tone Virtuoso",           // Level 5
-    "Wordsmith Wizard",        // Level 6
-    "Lexical Alchemist",       // Level 7
-    "Prose Mastermind",        // Level 8
-    "Language Luminary",       // Level 9
-    "Reword Royalty"           // Level 10+
+// Get rewards data from gameification system
+const getNextReward = (level: number): { name: string, unlocksAt: number } => {
+  const rewards = [
+    { name: "Basic themes", unlocksAt: 1 },
+    { name: "Professional themes", unlocksAt: 5 },
+    { name: "Premium themes", unlocksAt: 10 },
+    { name: "Advanced styles", unlocksAt: 15 },
+    { name: "Expert tones", unlocksAt: 20 },
   ];
   
-  return level <= titles.length ? titles[level - 1] : "Reword Legend";
+  // Find the next reward that hasn't been unlocked yet
+  const nextReward = rewards.find(reward => reward.unlocksAt > level);
+  
+  // If all rewards are unlocked, return the last one
+  return nextReward || rewards[rewards.length - 1];
+}
+
+// Calculate progress to next unlock
+const getRewardProgress = (level: number, nextUnlock: number): number => {
+  // Find the previous unlock level
+  const prevUnlock = nextUnlock <= 5 ? 1 : 
+                     nextUnlock <= 10 ? 5 : 
+                     nextUnlock <= 15 ? 10 : 15;
+  
+  // Calculate progress percentage between previous and next unlock
+  return ((level - prevUnlock) / (nextUnlock - prevUnlock)) * 100;
 }
 
 interface HistoryItem {
@@ -206,6 +218,9 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
         saveToHistory(text, result, tone)
         // Add XP
         addXP(5)
+        // Track tone usage for badges and rewards (with word count)
+        const wordCount = text.split(/\s+/).filter(word => word.trim().length > 0).length;
+        gameification.trackToneUsage(tone, wordCount);
       }
     } catch (error) {
       console.error("Error during inline rewrite:", error)
@@ -368,8 +383,6 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                         <span className="text-sm font-medium">{streak} day streak</span>
                         <Info className="w-3 h-3 text-muted-foreground cursor-help" />
                         <div className="absolute top-full right-0 mt-2 bg-popover text-popover-foreground text-xs p-3 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 w-64">
-                          <h5 className="font-medium mb-3">Your Progress</h5>
-                          
                           <div className="space-y-3">
                             {/* Level Progress */}
                             <div>
@@ -380,7 +393,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                               <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
                                 <div 
                                   className="bg-primary h-full rounded-full transition-all duration-500 ease-out" 
-                                  style={{ width: `${xp % 100}%` }}
+                                  style={{ width: `${calculateProgress(xp % 100, 100)}%` }}
                                 />
                               </div>
                               <div className="text-xxs text-muted-foreground mt-1">
@@ -397,7 +410,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                               <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
                                 <div 
                                   className="bg-accent h-full rounded-full transition-all duration-500 ease-out" 
-                                  style={{ width: `${(streak / 7) * 100}%` }}
+                                  style={{ width: `${calculateProgress(streak, 7)}%` }}
                                 />
                               </div>
                               <div className="text-xxs text-muted-foreground mt-1">
@@ -405,18 +418,101 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                               </div>
                             </div>
                             
-                            {/* Ways to Earn XP */}
+                            {/* Next Rewards - Dynamically calculated */}
                             <div>
                               <div className="flex justify-between mb-1">
-                                <span>Ways to Earn XP</span>
+                                <span>Next Rewards</span>
                               </div>
-                              <ul className="text-xxs text-muted-foreground mt-1 space-y-1 pl-3">
-                                <li>• Complete a rewrite (+5 XP)</li>
-                                <li>• Use different tones (+2 XP)</li>
-                                <li>• Battle Mode completion (+10 XP)</li>
-                                <li>• Daily login streak (+3 XP/day)</li>
-                                <li>• Custom tone creation (+8 XP)</li>
-                              </ul>
+                              
+                              {/* Next Tone */}
+                              {(() => {
+                                const nextTone = getNextUnlockableTone(gameification.unlockableTones, xp, streak);
+                                if (nextTone) {
+                                  const current = nextTone.unlockRequirement.type === 'xp' ? xp : streak;
+                                  const required = nextTone.unlockRequirement.value;
+                                  const progress = calculateProgress(current, required);
+                                  
+                                  return (
+                                    <div className="mb-2">
+                                      <div className="text-xxs font-medium flex justify-between">
+                                        <span>Tone: {nextTone.name}</span>
+                                        <span>{current}/{required} {nextTone.unlockRequirement.type === 'xp' ? 'XP' : 'Days'}</span>
+                                      </div>
+                                      <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden mt-1">
+                                        <div 
+                                          className="bg-primary h-full rounded-full" 
+                                          style={{ width: `${progress}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
+                              
+                              {/* Next Theme */}
+                              {(() => {
+                                const nextTheme = getNextUnlockableTheme(gameification.themes, xp, level, streak);
+                                if (nextTheme) {
+                                  let current, required, unitLabel;
+                                  
+                                  if (nextTheme.unlockRequirement.type === 'xp') {
+                                    current = xp;
+                                    required = nextTheme.unlockRequirement.value;
+                                    unitLabel = 'XP';
+                                  } else if (nextTheme.unlockRequirement.type === 'level') {
+                                    current = level;
+                                    required = nextTheme.unlockRequirement.value;
+                                    unitLabel = 'Level';
+                                  } else {
+                                    current = streak;
+                                    required = nextTheme.unlockRequirement.value;
+                                    unitLabel = 'Days';
+                                  }
+                                  
+                                  const progress = calculateProgress(current, required);
+                                  
+                                  return (
+                                    <div className="mb-2">
+                                      <div className="text-xxs font-medium flex justify-between">
+                                        <span>Theme: {nextTheme.name}</span>
+                                        <span>{current}/{required} {unitLabel}</span>
+                                      </div>
+                                      <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden mt-1">
+                                        <div 
+                                          className="bg-accent h-full rounded-full" 
+                                          style={{ width: `${progress}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
+                              
+                              {/* Next Badge */}
+                              {(() => {
+                                const nextBadge = getNextUnlockableBadge(gameification.toneMasterBadges);
+                                if (nextBadge) {
+                                  const progress = calculateProgress(nextBadge.progress, nextBadge.required);
+                                  
+                                  return (
+                                    <div>
+                                      <div className="text-xxs font-medium flex justify-between">
+                                        <span>Badge: {nextBadge.name}</span>
+                                        <span>{nextBadge.progress}/{nextBadge.required} Uses</span>
+                                      </div>
+                                      <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden mt-1">
+                                        <div 
+                                          className="bg-primary h-full rounded-full" 
+                                          style={{ width: `${progress}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -426,7 +522,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                     <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
                       <div 
                         className="bg-primary h-full rounded-full transition-all duration-500 ease-out" 
-                        style={{ width: `${xp % 100}%` }}
+                        style={{ width: `${calculateProgress(xp % 100, 100)}%` }}
                       />
                     </div>
                     
@@ -644,7 +740,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             >
               <Sparkles className="w-4 h-4" />
             </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-10">
               Rewards
             </span>
           </div>
@@ -657,7 +753,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-10">
               {isDarkMode ? 'Light Mode' : 'Dark Mode'}
             </span>
           </div>
@@ -670,7 +766,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             >
               <X className="w-4 h-4" />
             </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-10">
               Close
             </span>
           </div>
@@ -691,6 +787,7 @@ const RewordResult: React.FC<{
   const [copied, setCopied] = useState(false)
   const [hasTriggeredRewrite, setHasTriggeredRewrite] = useState(false)
   const [hasNotifiedParent, setHasNotifiedParent] = useState(false)
+  const gameification = useGameification()
   
   // Trigger rewrite on component mount
   useEffect(() => {
@@ -713,8 +810,17 @@ const RewordResult: React.FC<{
     if (rewrittenText && !hasNotifiedParent && onRewrittenText) {
       onRewrittenText(rewrittenText)
       setHasNotifiedParent(true)
+      
+      // Calculate word count for proper tracking
+      const wordCount = originalText.split(/\s+/).filter(word => word.trim().length > 0).length;
+      
+      // Track tone usage for rewards and badges with word count
+      gameification.trackToneUsage(tone, wordCount);
+      
+      // Add XP for successful rewrite
+      gameification.addXP(5);
     }
-  }, [rewrittenText, onRewrittenText, hasNotifiedParent])
+  }, [rewrittenText, onRewrittenText, hasNotifiedParent, originalText, tone, gameification])
   
   // Copy text to clipboard
   const copyToClipboard = () => {

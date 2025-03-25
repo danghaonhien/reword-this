@@ -7,6 +7,36 @@ import {
   GameificationResult 
 } from './gameificationTypes'
 
+// Define interface for the global state
+interface GlobalGameState {
+  xp: number;
+  level: number;
+  streak: number;
+  updatedAt: number;
+  update: (newValues: Partial<Omit<GlobalGameState, 'update'>>) => void;
+}
+
+// Global state object to be shared across components
+export const gameificationState: GlobalGameState = {
+  xp: 0,
+  level: 1,
+  streak: 0,
+  updatedAt: Date.now(),
+  
+  // Update method to trigger state change notification
+  update(newValues: Partial<Omit<GlobalGameState, 'update'>>) {
+    Object.assign(gameificationState, newValues, { updatedAt: Date.now() });
+    
+    // Broadcast gameStateUpdated event for components to react
+    const event = new CustomEvent('gameStateUpdated', {
+      detail: { ...newValues, timestamp: Date.now() }
+    });
+    window.dispatchEvent(event);
+    
+    console.log('Global gameification state updated:', gameificationState);
+  }
+};
+
 // Define interface for custom themes
 interface CustomTheme {
   id: string
@@ -243,26 +273,76 @@ export const useGameification = (): GameificationResult => {
   
   // Check for streak updates
   const checkAndUpdateStreak = () => {
-    if (!lastRewrite) return
+    if (!lastRewrite) {
+      // First time user is doing a rewrite
+      setLastRewrite(new Date());
+      return;
+    }
     
-    const now = new Date()
-    const lastRewriteDate = new Date(lastRewrite)
+    const now = new Date();
+    const lastRewriteDate = new Date(lastRewrite);
     
     // Reset streak if it's been more than 48 hours since last activity
     if (now.getTime() - lastRewriteDate.getTime() > 48 * 60 * 60 * 1000) {
-      setStreak(0)
-      return
+      setStreak(0);
+      
+      // Update global state
+      gameificationState.update({ streak: 0 });
+      
+      // Dispatch streak reset event
+      setTimeout(() => {
+        const event = new CustomEvent('gameStateUpdated', {
+          detail: { type: 'streak', value: 0, reset: true }
+        });
+        window.dispatchEvent(event);
+      }, 10);
+      
+      return;
     }
     
     // Check if we're on a new day compared to the last rewrite
-    const today = new Date().toDateString()
-    const lastRewriteDay = lastRewriteDate.toDateString()
+    const today = new Date().toDateString();
+    const lastRewriteDay = lastRewriteDate.toDateString();
     
     if (today !== lastRewriteDay) {
-      // It's a new day, so we increment the streak
-      setStreak(streak + 1)
-      checkUnlocks()
+      // Get the streak from localStorage to ensure we're not incrementing multiple times
+      const currentStreak = localStorage.getItem('reword-streak');
+      const parsedStreak = currentStreak ? parseInt(currentStreak) : 0;
+      
+      // Compare dates to ensure we only increment once per day
+      const lastStreakUpdateDay = localStorage.getItem('reword-streak-last-update');
+      
+      if (lastStreakUpdateDay !== today) {
+        // It's a new day and we haven't updated the streak yet today
+        const newStreakValue = parsedStreak + 1;
+        setStreak(newStreakValue);
+        
+        // Update global state
+        gameificationState.update({ streak: newStreakValue });
+        
+        localStorage.setItem('reword-streak-last-update', today);
+        
+        // Dispatch streak update event
+        setTimeout(() => {
+          const event = new CustomEvent('gameStateUpdated', {
+            detail: { type: 'streak', value: newStreakValue, increased: true }
+          });
+          window.dispatchEvent(event);
+          console.log('Streak increased to', newStreakValue);
+        }, 10);
+        
+        checkUnlocks();
+      } else {
+        // We've already updated the streak today, just use the current value
+        setStreak(parsedStreak);
+        
+        // Update global state to ensure consistency
+        gameificationState.update({ streak: parsedStreak });
+      }
     }
+    
+    // Update last rewrite time
+    setLastRewrite(now);
   }
   
   // Reset daily missions
@@ -279,9 +359,26 @@ export const useGameification = (): GameificationResult => {
   
   // Add XP and update related stats
   const addXP = (amount: number) => {
-    setXp(prevXp => prevXp + amount)
-    setLastRewrite(new Date())
-    checkAndUpdateStreak()
+    setXp(prevXp => {
+      const newXp = prevXp + amount;
+      
+      // Update global state
+      gameificationState.update({ xp: newXp });
+      
+      // Dispatch event to signal XP change for immediate UI update
+      setTimeout(() => {
+        const event = new CustomEvent('gameStateUpdated', {
+          detail: { type: 'xp', value: newXp }
+        });
+        window.dispatchEvent(event);
+      }, 10);
+      
+      return newXp;
+    });
+    
+    // Only check streak but don't set lastRewrite here
+    // This prevents streak from incrementing on each rewrite
+    checkAndUpdateStreak();
   }
   
   // Track tone usage for missions and badges
@@ -294,11 +391,18 @@ export const useGameification = (): GameificationResult => {
     })
     
     // Update tone master badges
-    setToneMasterBadges(badges => 
-      badges.map(badge => {
+    let badgeUnlocked = false;
+    setToneMasterBadges(badges => {
+      let anyUnlocked = false;
+      const updatedBadges = badges.map(badge => {
         if (badge.tone === tone && !badge.unlocked) {
           const newProgress = badge.progress + 1
           const unlocked = newProgress >= badge.required
+          if (unlocked) {
+            anyUnlocked = true;
+            // Award XP bonus when a badge is unlocked
+            setTimeout(() => addXP(15), 10);
+          }
           return {
             ...badge,
             progress: newProgress,
@@ -306,8 +410,24 @@ export const useGameification = (): GameificationResult => {
           }
         }
         return badge
-      })
-    )
+      });
+      
+      if (anyUnlocked) {
+        // Trigger gameStateUpdated for badge progress
+        setTimeout(() => {
+          const event = new CustomEvent('gameStateUpdated', {
+            detail: { type: 'badges', tone }
+          });
+          window.dispatchEvent(event);
+        }, 20);
+      }
+      
+      return updatedBadges;
+    })
+    
+    // Force check unlocks to ensure tones and themes get updated
+    // when meeting XP or streak requirements
+    checkUnlocks();
     
     // Update missions
     updateMissions(tone, wordCount)
@@ -315,8 +435,10 @@ export const useGameification = (): GameificationResult => {
   
   // Update missions based on user actions
   const updateMissions = (tone: string, wordCount: number = 0) => {
-    setDailyMissions(missions => 
-      missions.map(mission => {
+    let missionsCompleted = false;
+    
+    setDailyMissions(missions => {
+      const updatedMissions = missions.map(mission => {
         if (mission.completed) return mission
         
         let newProgress = mission.progress
@@ -345,6 +467,7 @@ export const useGameification = (): GameificationResult => {
         completed = newProgress >= mission.goal
         
         if (completed && !mission.completed) {
+          missionsCompleted = true;
           // Give rewards when mission is completed
           if (mission.reward.type === 'xp') {
             // We'll handle this outside to avoid state update issues
@@ -352,6 +475,8 @@ export const useGameification = (): GameificationResult => {
           } else if (mission.reward.type === 'streak_bonus') {
             // We'll handle this outside to avoid state update issues
             setTimeout(() => setStreak(s => s + mission.reward.value), 10)
+            // Check unlocks after streak update
+            setTimeout(() => checkUnlocks(), 20)
           }
         }
         
@@ -360,25 +485,47 @@ export const useGameification = (): GameificationResult => {
           progress: newProgress,
           completed
         }
-      })
-    )
+      });
+      
+      // Trigger an update event if missions have changed
+      if (missionsCompleted) {
+        setTimeout(() => {
+          const event = new CustomEvent('gameStateUpdated', {
+            detail: { type: 'missions', missions: updatedMissions }
+          });
+          window.dispatchEvent(event);
+        }, 20);
+      }
+      
+      return updatedMissions;
+    });
+    
+    // If any missions were completed, check for unlocks again
+    if (missionsCompleted) {
+      setTimeout(() => checkUnlocks(), 30);
+    }
   }
   
   // Track battle usage
   const trackBattle = () => {
-    setDailyMissions(missions => 
-      missions.map(mission => {
+    let battleCompleted = false;
+    
+    setDailyMissions(missions => {
+      const updatedMissions = missions.map(mission => {
         if (mission.completed || mission.type !== 'battle') return mission
         
         const newProgress = mission.progress + 1
         const completed = newProgress >= mission.goal
         
         if (completed && !mission.completed) {
+          battleCompleted = true;
           // Give rewards when mission is completed
           if (mission.reward.type === 'xp') {
             setTimeout(() => addXP(mission.reward.value), 10)
           } else if (mission.reward.type === 'streak_bonus') {
             setTimeout(() => setStreak(s => s + mission.reward.value), 10)
+            // Check unlocks after streak update
+            setTimeout(() => checkUnlocks(), 20)
           }
         }
         
@@ -387,25 +534,53 @@ export const useGameification = (): GameificationResult => {
           progress: newProgress,
           completed
         }
-      })
-    )
+      });
+      
+      // Dispatch event if battle mission changed
+      if (battleCompleted) {
+        setTimeout(() => {
+          const event = new CustomEvent('gameStateUpdated', {
+            detail: { type: 'battle', completed: true }
+          });
+          window.dispatchEvent(event);
+        }, 20);
+      }
+      
+      return updatedMissions;
+    });
+    
+    // Always award XP for battles
+    addXP(10);
+    
+    // Check for unlocks since XP was awarded
+    checkUnlocks();
+    
+    // If battle mission was completed, check unlocks again after rewards are given
+    if (battleCompleted) {
+      setTimeout(() => checkUnlocks(), 30);
+    }
   }
   
   // Track custom tone usage
   const trackCustomTone = () => {
-    setDailyMissions(missions => 
-      missions.map(mission => {
+    let customToneCompleted = false;
+    
+    setDailyMissions(missions => {
+      const updatedMissions = missions.map(mission => {
         if (mission.completed || mission.type !== 'custom_tone') return mission
         
         const newProgress = mission.progress + 1
         const completed = newProgress >= mission.goal
         
         if (completed && !mission.completed) {
+          customToneCompleted = true;
           // Give rewards when mission is completed
           if (mission.reward.type === 'xp') {
             setTimeout(() => addXP(mission.reward.value), 10)
           } else if (mission.reward.type === 'streak_bonus') {
             setTimeout(() => setStreak(s => s + mission.reward.value), 10)
+            // Check unlocks after streak update
+            setTimeout(() => checkUnlocks(), 20)
           }
         }
         
@@ -414,43 +589,174 @@ export const useGameification = (): GameificationResult => {
           progress: newProgress,
           completed
         }
-      })
-    )
+      });
+      
+      // Dispatch event if custom tone mission changed
+      if (customToneCompleted) {
+        setTimeout(() => {
+          const event = new CustomEvent('gameStateUpdated', {
+            detail: { type: 'customTone', completed: true }
+          });
+          window.dispatchEvent(event);
+        }, 20);
+      }
+      
+      return updatedMissions;
+    });
+    
+    // Always award XP for custom tone creation
+    addXP(8);
+    
+    // Check for unlocks since XP was awarded
+    checkUnlocks();
+    
+    // If custom tone mission was completed, check unlocks again after rewards are given
+    if (customToneCompleted) {
+      setTimeout(() => checkUnlocks(), 30);
+    }
   }
   
   // Check if new items should be unlocked based on XP, level or streak
   const checkUnlocks = () => {
+    let unlockedItems = false;
+    let unlockedDetails = {
+      tones: [] as string[],
+      themes: [] as string[],
+      badges: [] as string[]
+    };
+    
+    // Update the level in the global state
+    gameificationState.update({ 
+      xp, 
+      level, 
+      streak 
+    });
+    
     // Check unlockable tones
-    setUnlockableTones(tones => 
-      tones.map(tone => {
+    setUnlockableTones(tones => {
+      let anyUnlocked = false;
+      const updatedTones = tones.map(tone => {
         if (!tone.unlocked) {
           if (
             (tone.unlockRequirement.type === 'xp' && xp >= tone.unlockRequirement.value) ||
             (tone.unlockRequirement.type === 'streak' && streak >= tone.unlockRequirement.value)
           ) {
-            return { ...tone, unlocked: true }
+            anyUnlocked = true;
+            unlockedDetails.tones.push(tone.name);
+            return { ...tone, unlocked: true };
           }
         }
-        return tone
-      })
-    )
+        return tone;
+      });
+      
+      if (anyUnlocked) {
+        unlockedItems = true;
+        // Dispatch separate event for tones update
+        setTimeout(() => {
+          const event = new CustomEvent('gameStateUpdated', {
+            detail: { type: 'tones', unlocked: unlockedDetails.tones }
+          });
+          window.dispatchEvent(event);
+        }, 20);
+      }
+      
+      return updatedTones;
+    });
     
     // Check themes
-    setThemes(themes => 
-      themes.map(theme => {
+    setThemes(themes => {
+      let anyUnlocked = false;
+      const updatedThemes = themes.map(theme => {
         if (!theme.unlocked) {
           if (
             (theme.unlockRequirement.type === 'xp' && xp >= theme.unlockRequirement.value) ||
             (theme.unlockRequirement.type === 'streak' && streak >= theme.unlockRequirement.value) ||
             (theme.unlockRequirement.type === 'level' && level >= theme.unlockRequirement.value)
           ) {
-            return { ...theme, unlocked: true }
+            anyUnlocked = true;
+            unlockedDetails.themes.push(theme.name);
+            return { ...theme, unlocked: true };
           }
         }
-        return theme
-      })
-    )
-  }
+        return theme;
+      });
+      
+      if (anyUnlocked) {
+        unlockedItems = true;
+        // Dispatch separate event for themes update
+        setTimeout(() => {
+          const event = new CustomEvent('gameStateUpdated', {
+            detail: { type: 'themes', unlocked: unlockedDetails.themes }
+          });
+          window.dispatchEvent(event);
+        }, 30);
+      }
+      
+      return updatedThemes;
+    });
+    
+    // Check badges again for XP-based unlocks
+    setToneMasterBadges(badges => {
+      let anyUnlocked = false;
+      const updatedBadges = badges.map(badge => {
+        if (badge.progress >= badge.required && !badge.unlocked) {
+          anyUnlocked = true;
+          unlockedDetails.badges.push(badge.name);
+          return { ...badge, unlocked: true };
+        }
+        return badge;
+      });
+      
+      if (anyUnlocked) {
+        unlockedItems = true;
+        // Dispatch separate event for badges update
+        setTimeout(() => {
+          const event = new CustomEvent('gameStateUpdated', {
+            detail: { type: 'badges', unlocked: unlockedDetails.badges }
+          });
+          window.dispatchEvent(event);
+        }, 40);
+      }
+      
+      return updatedBadges;
+    });
+    
+    // Dispatch event if anything was unlocked
+    if (unlockedItems) {
+      // Using a small timeout to ensure state has updated
+      setTimeout(() => {
+        // Log the event for debugging
+        console.log('Dispatching rewardUnlocked event:', { xp, level, streak, unlockedDetails });
+        
+        // Dispatch the reward unlocked event
+        const event = new CustomEvent('rewardUnlocked', {
+          detail: { 
+            xp, 
+            level, 
+            streak,
+            unlockedDetails  
+          }
+        });
+        window.dispatchEvent(event);
+        
+        // Update global state with all the latest data
+        gameificationState.update({ 
+          xp, 
+          level, 
+          streak
+        });
+        
+        // Also dispatch a general update event to force UI refresh with a short delay
+        // to ensure it happens after all the other state updates
+        setTimeout(() => {
+          const updateEvent = new CustomEvent('gameStateUpdated', {
+            detail: { type: 'allUnlocks', xp, level, streak }
+          });
+          window.dispatchEvent(updateEvent);
+        }, 50);
+      }, 100);
+    }
+  };
   
   // Set active badge
   const setUserActiveBadge = (badgeId: string | null) => {

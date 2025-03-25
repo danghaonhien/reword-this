@@ -1,5 +1,6 @@
 import React from 'react'
 import { Flame, Trophy, Info } from 'lucide-react'
+import { getLevelTitle } from '@/utils/gameificationUtils'
 
 interface XPDisplayProps {
   xp: number
@@ -13,24 +14,6 @@ const xpGoals = [
   { id: 'rewrites', label: 'Total rewrites', max: 10, current: 3, xp: 20 },
   { id: 'surprise', label: 'Use Surprise Me', max: 5, current: 1, xp: 15 }
 ]
-
-// Fun level titles based on wordsmith progression
-const getLevelTitle = (level: number): string => {
-  const titles = [
-    "Word Novice",             // Level 1
-    "Phrase Apprentice",       // Level 2
-    "Sentence Crafter",        // Level 3
-    "Expression Artisan",      // Level 4
-    "Tone Virtuoso",           // Level 5
-    "Wordsmith Wizard",        // Level 6
-    "Lexical Alchemist",       // Level 7
-    "Prose Mastermind",        // Level 8
-    "Language Luminary",       // Level 9
-    "Reword Royalty"           // Level 10+
-  ];
-  
-  return level <= titles.length ? titles[level - 1] : "Reword Legend";
-}
 
 const XPDisplay: React.FC<XPDisplayProps> = ({ xp, streak }) => {
   // Calculate level based on XP
