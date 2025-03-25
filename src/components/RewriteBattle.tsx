@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { CopyIcon, CheckIcon, RefreshCw } from 'lucide-react'
+import { CopyIcon, CheckIcon, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface RewriteBattleProps {
   originalText: string
@@ -12,6 +12,7 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
   const [versionB, setVersionB] = useState('')
   const [copied, setCopied] = useState<string | null>(null)
   const [selectedVersion, setSelectedVersion] = useState<'A' | 'B' | null>(null)
+  const [showOriginal, setShowOriginal] = useState(false)
 
   const generateBattle = async () => {
     setIsLoading(true)
@@ -51,36 +52,50 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
     }, 1000)
   }
 
+  const toggleOriginalText = () => {
+    setShowOriginal(!showOriginal)
+  }
+
   if (!versionA && !versionB && !isLoading) {
     return (
       <div className="mt-4 flex flex-col items-center">
-        <div className="mb-4 bg-muted/30 p-3 rounded-md w-full">
-          <h4 className="text-xs font-medium text-muted-foreground mb-2">Original Text</h4>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{originalText}</p>
+        <div className="max-w-full w-full">
+          <p className="text-sm text-muted-foreground mb-4 text-center">
+            Generate two different rewrites and compare them
+          </p>
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={generateBattle}
+              className="px-4 py-2 bg-accent text-accent-foreground rounded-md 
+                        hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50"
+            >
+              Start Rewrite Battle
+            </button>
+          </div>
+          
+          <div className="w-full mt-6">
+            <button 
+              onClick={toggleOriginalText}
+              className="flex items-center justify-between w-full text-xs font-medium text-muted-foreground py-2 px-3 bg-muted/30 rounded-md hover:bg-muted/50 transition-colors"
+            >
+              <span>Original Text</span>
+              {showOriginal ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            
+            {showOriginal && (
+              <div className="p-3 mt-1 bg-muted/20 rounded-md border border-border max-h-64 overflow-y-auto custom-scrollbar">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{originalText}</p>
+              </div>
+            )}
+          </div>
         </div>
-        
-        <p className="text-sm text-muted-foreground mb-4">
-          Generate two different rewrites and compare them
-        </p>
-        <button
-          onClick={generateBattle}
-          className="px-4 py-2 bg-accent text-accent-foreground rounded-md 
-                    hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50"
-        >
-          Start Rewrite Battle
-        </button>
       </div>
     )
   }
 
   return (
     <div className="mt-4">
-      <div className="mb-4 bg-muted/30 p-3 rounded-md">
-        <h4 className="text-xs font-medium text-muted-foreground mb-2">Original Text</h4>
-        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{originalText}</p>
-      </div>
-      
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 sticky top-0 bg-background pt-1 pb-2 z-10">
         <h3 className="text-sm font-medium">Choose Your Favorite Rewrite</h3>
         <button 
           onClick={onRewriteAgain}
@@ -95,7 +110,7 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 pb-16">
           {/* Version A */}
           <div className={`p-3 border rounded-md ${selectedVersion === 'A' ? 'border-primary bg-primary/5' : 'border-border'}`}>
             <div className="flex justify-between items-start mb-2">
@@ -136,6 +151,23 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
             >
               {selectedVersion === 'B' ? 'Selected!' : 'Select Version B'}
             </button>
+          </div>
+
+          {/* Collapsible Original Text */}
+          <div className="mt-2">
+            <button 
+              onClick={toggleOriginalText}
+              className="flex items-center justify-between w-full text-xs font-medium text-muted-foreground py-2 px-3 bg-muted/30 rounded-md hover:bg-muted/50 transition-colors"
+            >
+              <span>Original Text</span>
+              {showOriginal ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            
+            {showOriginal && (
+              <div className="p-3 mt-1 bg-muted/20 rounded-md border border-border max-h-48 overflow-y-auto custom-scrollbar">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{originalText}</p>
+              </div>
+            )}
           </div>
         </div>
       )}

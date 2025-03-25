@@ -261,7 +261,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
         <RewardNotification />
         
         {/* Main content - conditionally render based on current view */}
-        <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-hidden flex flex-col h-screen max-h-screen">
           {currentView === 'rewards' ? (
             <div className="h-full min-h-0 overflow-auto custom-scrollbar p-4">
               <button
@@ -490,7 +490,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                   </div>
 
                   {/* Content Container - flex-grow to push controls to bottom */}
-                  <div className="flex-grow overflow-y-auto custom-scrollbar  pb-32">
+                  <div className="flex-grow overflow-y-auto custom-scrollbar pb-32">
                     {/* Rewrite Result (when available) */}
                     {isRewriting ? (
                       <div className="mb-4 bg-card border border-border rounded-md p-4">
@@ -506,7 +506,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                             <h3 className="text-sm font-medium">Rewritten with <span className="capitalize">{selectedTone}</span> tone</h3>
                           </div>
                           
-                          <div className="max-h-[240px] overflow-y-auto ">
+                          <div className="max-h-[240px] overflow-y-auto custom-scrollbar">
                             <p className="text-sm whitespace-pre-wrap">{rewrite}</p>
                           </div>
                           
@@ -606,7 +606,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                   </div>
                 </div>
               ) : currentView === 'battle' ? (
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full overflow-hidden">
                   <button
                     onClick={resetView}
                     className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
@@ -614,7 +614,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                     ← Back to Home
                   </button>
                   
-                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1">
+                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1" style={{ height: 'calc(100vh - 140px)' }}>
                     <RewriteBattle 
                       originalText={textToRewrite}
                       onRewriteAgain={rewriteAgain}
