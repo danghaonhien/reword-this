@@ -137,15 +137,15 @@ const initialThemes: Theme[] = [
     unlocked: true,
     className: 'theme-standard'
   },
-  {
-    id: 'dark',
-    name: 'Dark Mode',
+    {
+      id: 'dark',
+      name: 'Dark Mode',
     description: 'Low-light optimized theme',
     unlockRequirement: { type: 'level', value: 2 },
     unlocked: false,
-    className: 'theme-dark'
-  },
-  {
+      className: 'theme-dark'
+    },
+    {
     id: 'focus',
     name: 'Focus Mode',
     description: 'Minimalist, distraction-free interface',
@@ -158,15 +158,15 @@ const initialThemes: Theme[] = [
     name: 'Nature',
     description: 'Calming green and blue palette',
     unlockRequirement: { type: 'streak', value: 5 },
-    unlocked: false,
+      unlocked: false,
     className: 'theme-nature'
   },
   {
     id: 'vibrant',
     name: 'Vibrant',
     description: 'High-contrast, energetic colors',
-    unlockRequirement: { type: 'level', value: 5 },
-    unlocked: false,
+      unlockRequirement: { type: 'level', value: 5 },
+      unlocked: false,
     className: 'theme-vibrant'
   },
   {
@@ -190,9 +190,9 @@ const initialThemes: Theme[] = [
     name: 'Custom Accent Colors',
     description: 'Personalized color choices (Premium)',
     unlockRequirement: { type: 'xp', value: 9999 }, // Premium only
-    unlocked: false,
+      unlocked: false,
     className: 'theme-custom-accent'
-  }
+    }
 ];
   
 const initialToneMasterBadges: ToneMasterBadge[] = [
@@ -358,12 +358,12 @@ const initialToneMasterBadges: ToneMasterBadge[] = [
     description: 'Premium: Used advanced vocabulary features',
     progress: 0,
     required: 1,
-    unlocked: false
-  }
+      unlocked: false
+    }
 ];
-
+  
 const initialDailyMissions: DailyMission[] = [
-  {
+    {
     id: 'tone_explorer',
       title: 'Tone Explorer',
       description: 'Use 3 different tones today',
@@ -856,15 +856,6 @@ export function useGameification(): GameificationResult {
     setActiveTheme,
     completeMission
   };
-
-  // Add debug properties only in development mode
-  if (process.env.NODE_ENV === 'development') {
-    (result as any).debugRewards = debugRewards;
-    (result as any).fixMissionIssues = fixMissionIssues;
-    (result as any).simulateUnlock = simulateUnlock;
-    (result as any).simulateMissionComplete = simulateMissionComplete;
-    (result as any).resetGameification = resetGameification;
-  }
 
   return result;
 } 

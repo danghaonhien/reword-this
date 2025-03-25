@@ -59,18 +59,8 @@ const ThemeSwitcher: React.FC = () => {
       Array.from(document.documentElement.classList));
   }, [activeTheme]);
 
-  // Load saved theme on component mount and unlock test themes
+  // Load saved theme on component mount
   useEffect(() => {
-    // For testing: unlock first few themes
-    const themesToUnlock = ['standard', 'dark', 'focus']; 
-    themesToUnlock.forEach(themeId => {
-      const theme = themes.find(t => t.id === themeId);
-      if (theme && !theme.unlocked) {
-        console.log(`Unlocking theme for testing: ${themeId}`);
-        theme.unlocked = true;
-      }
-    });
-    
     const savedThemeId = localStorage.getItem('activeTheme');
     console.log('Loading saved theme from localStorage:', savedThemeId);
     
