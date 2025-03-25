@@ -23,17 +23,6 @@ export interface Theme {
   className: string
 }
 
-// Define interface for tone master badges
-export interface ToneMasterBadge {
-  id: string
-  tone: string
-  name: string
-  description: string
-  progress: number
-  required: number
-  unlocked: boolean
-}
-
 // Define interface for daily missions
 export interface DailyMission {
   id: string
@@ -67,9 +56,6 @@ export interface GameificationResult {
   // Feature-specific data and functions
   unlockableTones: UnlockableTone[]
   themes: Theme[]
-  toneMasterBadges: ToneMasterBadge[]
-  activeBadge: string | null
-  setActiveBadge: (badgeId: string | null) => void
   dailyMissions: DailyMission[]
   tonesUsedToday: Record<string, number>
   activeTheme: Theme | null

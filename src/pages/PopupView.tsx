@@ -22,10 +22,8 @@ import RewardsPanel from '../components/RewardsPanel'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import { useRewrite } from '../hooks/useRewrite'
 import { useGameification } from '../hooks/useGameification'
-import { Theme, UnlockableTone, ToneMasterBadge } from '../hooks/gameificationTypes'
-import { calculateProgress, getNextUnlockableTone, getNextUnlockableTheme, getNextUnlockableBadge, getLevelTitle } from '../utils/gameificationUtils'
-import BadgeSelector from '../components/BadgeSelector'
-import ActiveBadgeDisplay from '../components/ActiveBadgeDisplay'
+import { Theme, UnlockableTone } from '../hooks/gameificationTypes'
+import { calculateProgress, getNextUnlockableTone, getNextUnlockableTheme, getLevelTitle } from '../utils/gameificationUtils'
 import RewardNotification from '../components/RewardNotification'
 
 // Get rewards data from gameification system
@@ -473,30 +471,6 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                                 }
                                 return null;
                               })()}
-                              
-                              {/* Next Badge */}
-                              {(() => {
-                                const nextBadge = getNextUnlockableBadge(gameification.toneMasterBadges);
-                                if (nextBadge) {
-                                  const progress = calculateProgress(nextBadge.progress, nextBadge.required);
-                                  
-                                  return (
-                                    <div>
-                                      <div className="text-xxs font-medium flex justify-between">
-                                        <span>Badge: {nextBadge.name}</span>
-                                        <span>{nextBadge.progress}/{nextBadge.required} Uses</span>
-                                      </div>
-                                      <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden mt-1">
-                                        <div 
-                                          className="bg-primary h-full rounded-full" 
-                                          style={{ width: `${progress}%` }}
-                                        />
-                                      </div>
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              })()}
                             </div>
                           </div>
                         </div>
@@ -674,13 +648,6 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
       <div className="flex flex-col items-center w-12 py-4 bg-card border-l border-border">
         {/* Navigation buttons - reordering to put ThemeSwitcher below Custom Tone */}
         <div className="flex flex-col items-center gap-3 mb-auto">
-          {/* Active Badge Display at the top if there's an active badge */}
-          {gameification.activeBadge && (
-            <div className="mb-2">
-              <ActiveBadgeDisplay size="sm" />
-            </div>
-          )}
-          
           <div className="relative group">
             <button 
               onClick={() => setCurrentView('battle')}
@@ -714,16 +681,6 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             </div>
             <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
               Theme
-            </span>
-          </div>
-          
-          {/* Badge Selector - added here */}
-          <div className="relative group">
-            <div className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground">
-              <BadgeSelector />
-            </div>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
-              Badges
             </span>
           </div>
           

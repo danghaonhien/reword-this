@@ -3,13 +3,12 @@ import { useGameification } from '@/hooks/useGameification'
 import { 
   UnlockableTone, 
   Theme, 
-  ToneMasterBadge, 
   DailyMission 
 } from '@/hooks/gameificationTypes'
-import { Gift, Award, Palette, Target, Check, Lock } from 'lucide-react'
-import { getNextUnlockableTone, getNextUnlockableTheme, getNextUnlockableBadge, calculateProgress } from '@/utils/gameificationUtils'
+import { Gift, Palette, Target, Check, Lock } from 'lucide-react'
+import { getNextUnlockableTone, getNextUnlockableTheme, calculateProgress } from '@/utils/gameificationUtils'
 
-type RewardTab = 'tones' | 'themes' | 'badges' | 'missions'
+type RewardTab = 'tones' | 'themes' | 'missions'
 
 interface RewardsPanelProps {
   onBack?: () => void;
@@ -20,9 +19,8 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
   const [showUnlockNotification, setShowUnlockNotification] = useState(false)
   const [recentlyUnlocked, setRecentlyUnlocked] = useState<{
     tones: string[],
-    themes: string[],
-    badges: string[]
-  }>({ tones: [], themes: [], badges: [] })
+    themes: string[]
+  }>({ tones: [], themes: [] })
   
   // Create a reference to track if component is mounted
   const isMounted = useRef(true);
@@ -34,16 +32,12 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
     streak,
     unlockableTones,
     themes,
-    toneMasterBadges,
-    dailyMissions,
-    activeBadge,
-    setActiveBadge
+    dailyMissions
   } = useGameification()
   
   // Get the next items to unlock
   const nextTone = getNextUnlockableTone(unlockableTones, xp, streak)
   const nextTheme = getNextUnlockableTheme(themes, xp, level, streak)
-  const nextBadge = getNextUnlockableBadge(toneMasterBadges)
   
   // Listen for unlock events
   useEffect(() => {
@@ -57,7 +51,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
       
       // Show notification when a reward is unlocked
       setShowUnlockNotification(true);
-      setRecentlyUnlocked(details.unlockedDetails || { tones: [], themes: [], badges: [] });
+      setRecentlyUnlocked(details.unlockedDetails || { tones: [], themes: [] });
       
       // Hide notification after 3 seconds
       setTimeout(() => {
@@ -83,11 +77,9 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
       streak,
       unlockableTones,
       themes,
-      toneMasterBadges,
-      dailyMissions,
-      activeBadge
+      dailyMissions
     });
-  }, [xp, level, streak, unlockableTones, themes, toneMasterBadges, dailyMissions, activeBadge]);
+  }, [xp, level, streak, unlockableTones, themes, dailyMissions]);
 
   return (
     <div className="bg-card border border-border rounded-md shadow-sm relative">
@@ -96,13 +88,10 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
         <div className="absolute top-0 left-0 right-0 bg-primary text-primary-foreground text-center py-2 px-3 text-sm font-medium z-10 animate-fadeInDown">
           🎉 {(() => {
             // Find what was recently unlocked
-            const unlockedBadge = toneMasterBadges.find(badge => badge.unlocked && badge.progress >= badge.required);
             const unlockedTone = unlockableTones.find(tone => tone.unlocked);
             const unlockedTheme = themes.find(theme => theme.unlocked);
             
-            if (unlockedBadge) {
-              return `New badge unlocked: "${unlockedBadge.name}"!`;
-            } else if (unlockedTone) {
+            if (unlockedTone) {
               return `New tone unlocked: "${unlockedTone.name}"!`;
             } else if (unlockedTheme) {
               return `New theme unlocked: "${unlockedTheme.name}"!`;
@@ -123,7 +112,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
         </div>
         
         {/* Next unlocks summary */}
-        {(nextTone || nextTheme || nextBadge) && (
+        {(nextTone || nextTheme) && (
           <div className="mt-2 pt-2 border-t border-border">
             <h4 className="text-xs font-medium mb-1">Next Unlocks:</h4>
             <div className="space-y-1">
@@ -148,13 +137,6 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                       ? `Level ${level}/${nextTheme.unlockRequirement.value}`
                       : `${streak}/${nextTheme.unlockRequirement.value} day streak`}
                   </span>
-                </div>
-              )}
-              
-              {nextBadge && (
-                <div className="flex items-center justify-between text-xs">
-                  <span>Badge: {nextBadge.name}</span>
-                  <span className="text-xxs">{nextBadge.progress}/{nextBadge.required} uses</span>
                 </div>
               )}
             </div>
@@ -185,17 +167,6 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
           >
             <Palette className="w-3 h-3" />
             Themes
-          </button>
-          <button
-            onClick={() => setActiveTab('badges')}
-            className={`px-3 py-2 text-xs font-medium flex-1 flex justify-center items-center gap-1.5 ${
-              activeTab === 'badges'
-                ? 'bg-primary/10 text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Award className="w-3 h-3" />
-            Badges
           </button>
           <button
             onClick={() => setActiveTab('missions')}
@@ -262,8 +233,8 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                     </div>
                     <div className="text-xs text-muted-foreground mt-1 text-right">
                       {tone.unlockRequirement.type === 'xp'
-                        ? `${xp}/${tone.unlockRequirement.value} XP`
-                        : `${streak}/${tone.unlockRequirement.value} days`}
+                        ? `${Math.min(xp, tone.unlockRequirement.value)}/${tone.unlockRequirement.value} XP`
+                        : `${Math.min(streak, tone.unlockRequirement.value)}/${tone.unlockRequirement.value} day streak`}
                     </div>
                   </div>
                 )}
@@ -316,11 +287,11 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                         className="h-full bg-primary rounded-full"
                         style={{
                           width: `${calculateProgress(
-                            theme.unlockRequirement.type === 'xp' 
-                              ? xp 
+                            theme.unlockRequirement.type === 'xp'
+                              ? xp
                               : theme.unlockRequirement.type === 'level'
-                                ? level
-                                : streak,
+                              ? level
+                              : streak,
                             theme.unlockRequirement.value
                           )}%`,
                         }}
@@ -328,68 +299,13 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                     </div>
                     <div className="text-xs text-muted-foreground mt-1 text-right">
                       {theme.unlockRequirement.type === 'xp'
-                        ? `${xp}/${theme.unlockRequirement.value} XP`
+                        ? `${Math.min(xp, theme.unlockRequirement.value)}/${theme.unlockRequirement.value} XP`
                         : theme.unlockRequirement.type === 'level'
-                        ? `Level ${level}/${theme.unlockRequirement.value}`
-                        : `${streak}/${theme.unlockRequirement.value} days`}
+                        ? `Level ${Math.min(level, theme.unlockRequirement.value)}/${theme.unlockRequirement.value}`
+                        : `${Math.min(streak, theme.unlockRequirement.value)}/${theme.unlockRequirement.value} day streak`}
                     </div>
                   </div>
                 )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab === 'badges' && (
-          <div className="space-y-3">
-            <div className="text-xs text-muted-foreground mb-2">
-              Become a master in different tones to earn badges
-            </div>
-            {toneMasterBadges.map((badge) => (
-              <div
-                key={badge.id}
-                className={`p-2 border rounded-md ${
-                  badge.unlocked
-                    ? 'border-primary/30 bg-primary/5'
-                    : 'border-border bg-muted/20'
-                } ${activeBadge === badge.id ? 'ring-2 ring-primary/50' : ''} ${(badge.unlocked && showUnlockNotification) ? 'newly-unlocked' : ''}`}
-                onClick={() => {
-                  if (badge.unlocked) {
-                    setActiveBadge(badge.id === activeBadge ? null : badge.id)
-                  }
-                }}
-              >
-                <div className="flex justify-between items-center">
-                  <div className="font-medium text-sm flex items-center gap-1.5">
-                    {badge.unlocked ? (
-                      <Award className={`w-3.5 h-3.5 ${(badge.unlocked && showUnlockNotification) ? 'text-accent animate-pulse' : 'text-primary'}`} />
-                    ) : (
-                      <Award className="w-3.5 h-3.5 text-muted-foreground" />
-                    )}
-                    {badge.name}
-                    {activeBadge === badge.id && (
-                      <span className="text-[10px] bg-primary text-primary-foreground px-1 py-0.5 rounded">
-                        Active
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {badge.description}
-                </div>
-                <div className="mt-2">
-                  <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full"
-                      style={{
-                        width: `${calculateProgress(badge.progress, badge.required)}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1 text-right">
-                    {badge.progress}/{badge.required}
-                  </div>
-                </div>
               </div>
             ))}
           </div>

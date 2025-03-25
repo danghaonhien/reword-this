@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Settings, X } from 'lucide-react'
 import ThemeSwitcher from './ThemeSwitcher'
-import BadgeSelector from './BadgeSelector'
+
 
 const SettingsPanel: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -32,7 +32,7 @@ const SettingsPanel: React.FC = () => {
             <div className="p-4 space-y-6">
               <ThemeSwitcher />
               <div className="border-t border-border pt-6">
-                <BadgeSelector />
+                {/* <BadgeSelector /> */}
               </div>
               
               {/* Add other settings sections here */}

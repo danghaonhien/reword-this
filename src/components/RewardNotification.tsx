@@ -1,105 +1,98 @@
 import React, { useState, useEffect } from 'react'
-import { Sparkles, X } from 'lucide-react'
+import { Sparkles, XCircle } from 'lucide-react'
 
-interface NotificationItem {
-  id: string;
-  type: 'tone' | 'theme' | 'badge';
-  name: string;
-  timestamp: number;
+// Define the event detail types
+interface RewardUnlockedEvent {
+  unlockedDetails: {
+    tones: string[];
+    themes: string[];
+  }
 }
 
 const RewardNotification: React.FC = () => {
-  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [notifications, setNotifications] = useState<{ id: string; type: string; name: string; }[]>([])
   
   useEffect(() => {
+    // Handle reward unlocked events
     const handleRewardUnlocked = (e: CustomEvent) => {
-      // Handle unified reward event
-      if (e.detail) {
-        const unlockedDetails = e.detail.unlockedDetails || {}
+      const detail = e.detail as RewardUnlockedEvent;
+      
+      if (detail?.unlockedDetails) {
+        const { tones = [], themes = [] } = detail.unlockedDetails;
         
         // Process tones
-        if (unlockedDetails.tones && unlockedDetails.tones.length > 0) {
-          unlockedDetails.tones.forEach((id: string) => {
-            // Find the tone details from gameification state
-            // For simplicity, just use the ID as name
-            const newNotification: NotificationItem = {
-              id: `tone-${id}-${Date.now()}`,
-              type: 'tone',
-              name: id, // Ideally we'd get the proper name
-              timestamp: Date.now()
-            }
-            
-            setNotifications(prev => [...prev, newNotification])
-          })
-        }
+        tones.forEach(tone => {
+          addNotification('tone', tone);
+        });
         
         // Process themes
-        if (unlockedDetails.themes && unlockedDetails.themes.length > 0) {
-          unlockedDetails.themes.forEach((id: string) => {
-            const newNotification: NotificationItem = {
-              id: `theme-${id}-${Date.now()}`,
-              type: 'theme',
-              name: id, // Ideally we'd get the proper name
-              timestamp: Date.now()
-            }
-            
-            setNotifications(prev => [...prev, newNotification])
-          })
-        }
-        
-        // Process badges
-        if (unlockedDetails.badges && unlockedDetails.badges.length > 0) {
-          unlockedDetails.badges.forEach((id: string) => {
-            const newNotification: NotificationItem = {
-              id: `badge-${id}-${Date.now()}`,
-              type: 'badge',
-              name: id, // Ideally we'd get the proper name
-              timestamp: Date.now()
-            }
-            
-            setNotifications(prev => [...prev, newNotification])
-          })
-        }
+        themes.forEach(theme => {
+          addNotification('theme', theme);
+        });
       }
     }
 
-    // Listen for the unified reward event
+    // Add event listener
     window.addEventListener('rewardUnlocked' as any, handleRewardUnlocked as any)
     
-    // Auto-remove notifications after 5 seconds
-    const timer = setInterval(() => {
-      const now = Date.now()
-      setNotifications(prev => 
-        prev.filter(notification => now - notification.timestamp < 5000)
-      )
-    }, 1000)
-    
+    // Cleanup
     return () => {
       window.removeEventListener('rewardUnlocked' as any, handleRewardUnlocked as any)
-      clearInterval(timer)
     }
   }, [])
+
+  // Add a notification
+  const addNotification = (type: string, id: string) => {
+    const newNotification = {
+      id: `${type}-${id}-${Date.now()}`,
+      type,
+      name: formatName(id)
+    }
+    
+    setNotifications(prev => [...prev, newNotification])
+    
+    // Auto-remove notification after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== newNotification.id))
+    }, 5000)
+  }
   
+  // Remove a notification
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id))
+  }
+  
+  // Format name from ID (camelCase or snake_case to Title Case)
+  const formatName = (id: string) => {
+    return id
+      .replace(/([A-Z])/g, ' $1') // Add spaces before capital letters
+      .replace(/_/g, ' ') // Replace underscores with spaces
+      .replace(/^\w/, c => c.toUpperCase()) // Capitalize first letter
+      .trim()
+  }
+
   // If no notifications, don't render anything
   if (notifications.length === 0) return null
   
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 w-64">
       {notifications.map(notification => (
         <div 
           key={notification.id}
-          className="bg-card border border-border rounded-md shadow-md p-3 animate-slideInUp flex items-center max-w-xs"
+          className="bg-card border border-border shadow-md rounded-md p-3 animate-slideInDown flex items-start"
         >
-          <Sparkles className="w-5 h-5 text-accent mr-2 animate-pulse" />
+          <div className="mr-2 mt-0.5">
+            <Sparkles className="w-4 h-4 text-accent" />
+          </div>
           <div className="flex-grow">
-            <div className="text-sm font-semibold">New {notification.type} Unlocked!</div>
-            <div className="text-xs text-muted-foreground capitalize">{notification.name.replace(/_/g, ' ')}</div>
+            <h4 className="text-sm font-medium">New {notification.type} Unlocked!</h4>
+            <p className="text-xs text-muted-foreground">{notification.name}</p>
           </div>
           <button 
-            onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
-            className="p-1 hover:bg-muted rounded-sm"
+            onClick={() => removeNotification(notification.id)}
+            className="text-muted-foreground hover:text-foreground"
           >
-            <X className="w-4 h-4 text-muted-foreground" />
+            <XCircle className="w-4 h-4" />
           </button>
         </div>
       ))}
