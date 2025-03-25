@@ -635,7 +635,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             <button 
               onClick={() => setCurrentView('battle')}
               className={`p-2 rounded-full ${currentView === 'battle' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-              title="Battle Rewrite"
+              // title="Battle Rewrite"
             >
               <Swords className="w-4 h-4" />
             </button>
@@ -646,7 +646,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
           
           {/* Theme Switcher placed directly after Battle */}
           <div className="relative group">
-            <div className="p-2  rounded-full hover:bg-muted/50 text-muted-foreground">
+            <div className="px-2 py-1 rounded-full hover:bg-muted/50 text-muted-foreground">
               <ThemeSwitcher />
             </div>
             <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
@@ -658,7 +658,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             <button 
               onClick={() => setCurrentView('history')}
               className={`p-2 rounded-full ${currentView === 'history' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-              title="Rewrite History"
+              // title="Rewrite History"
             >
               <History className="w-4 h-4" />
             </button>
@@ -674,7 +674,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             <button
               onClick={() => setCurrentView('rewards')}
               className={`p-2 rounded-full ${currentView === 'rewards' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-              title="Rewards"
+              // title="Rewards"
             >
               <Sparkles className="w-4 h-4" />
             </button>
@@ -687,7 +687,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             <button
               onClick={closeApp}
               className="p-2 rounded-full hover:bg-destructive/20 text-destructive"
-              title="Close"
+              // title="Close"
             >
               <X className="w-4 h-4" />
             </button>

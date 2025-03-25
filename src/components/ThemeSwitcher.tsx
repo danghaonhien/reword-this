@@ -100,8 +100,8 @@ const ThemeSwitcher: React.FC = () => {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-0 rounded-full w-full h-full" 
-        title="Change theme"
+        className="p-0 rounded-full w-full h-full justify-center items-center" 
+       
       >
         <Palette className="w-4 h-4" />
       </button>
