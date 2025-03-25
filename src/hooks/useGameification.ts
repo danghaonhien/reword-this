@@ -189,34 +189,34 @@ const initialThemes: Theme[] = [
 ];
   
 const initialDailyMissions: DailyMission[] = [
-    {
+  {
     id: 'tone_explorer',
-      title: 'Tone Explorer',
-      description: 'Use 3 different tones today',
-      type: 'use_tones',
-      goal: 3,
-      progress: 0,
-      completed: false,
+    title: 'Tone Explorer',
+    description: 'Use 3 different tones today',
+    type: 'use_tones',
+    goal: 3,
+    progress: 0,
+    completed: false,
     reward: { type: 'xp', value: 40 }
   },
   {
     id: 'word_count',
     title: 'Word Count',
     description: 'Rewrite at least 200 words today',
-      type: 'rewrite_words',
+    type: 'rewrite_words',
     goal: 200,
-      progress: 0,
-      completed: false,
-      reward: { type: 'xp', value: 30 }
-    },
-    {
+    progress: 0,
+    completed: false,
+    reward: { type: 'xp', value: 30 }
+  },
+  {
     id: 'multi_tasker',
     title: 'Multi-tasker',
     description: 'Complete 3 different rewrites today',
     type: 'rewrite_count',
-      goal: 3,
-      progress: 0,
-      completed: false,
+    goal: 3,
+    progress: 0,
+    completed: false,
     reward: { type: 'xp', value: 50 }
   },
   {
@@ -228,16 +228,6 @@ const initialDailyMissions: DailyMission[] = [
     progress: 0,
     completed: false,
     reward: { type: 'xp', value: 60 }
-  },
-  {
-    id: 'style_specialist',
-    title: 'Style Specialist',
-    description: 'Use the Custom Tone Builder feature once today',
-    type: 'custom_tone',
-    goal: 1,
-    progress: 0,
-    completed: false,
-    reward: { type: 'xp', value: 70 }
   },
   {
     id: 'feedback_friend',
@@ -456,11 +446,6 @@ export function useGameification(): GameificationResult {
     addXP(10); // Add XP for battles
     gameificationService.updateMissions('battle', 1); 
   }
-
-  const trackCustomTone = () => {
-    addXP(15); // Add XP for custom tone creation
-    gameificationService.updateMissions('custom_tone', 1); 
-  }
   
   const trackFeedback = () => {
     addXP(5); // Add XP for providing feedback
@@ -586,7 +571,6 @@ export function useGameification(): GameificationResult {
     checkAndUpdateStreak: () => gameificationService.updateStreak(),
     trackToneUsage,
     trackBattle,
-    trackCustomTone,
     trackFeedback,
     trackWordWizard,
     setActiveTheme,

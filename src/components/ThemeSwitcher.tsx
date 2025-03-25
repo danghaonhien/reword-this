@@ -100,7 +100,7 @@ const ThemeSwitcher: React.FC = () => {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-0" 
+        className="p-0 rounded-full w-full h-full" 
         title="Change theme"
       >
         <Palette className="w-4 h-4" />
@@ -118,7 +118,7 @@ const ThemeSwitcher: React.FC = () => {
                   key={theme.id}
                   onClick={() => handleThemeChange(theme)}
                   className={`w-full text-left px-3 py-1.5 rounded-sm text-sm flex items-center justify-between
-                    ${activeTheme?.id === theme.id ? 'bg-accent/20 text-accent-foreground' : 'hover:bg-muted'}
+                    ${activeTheme?.id === theme.id ? 'bg-primary text-accent-foreground' : 'hover:bg-muted'}
                   `}
                 >
                   <span className="capitalize">{theme.name}</span>

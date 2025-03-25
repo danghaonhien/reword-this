@@ -34,6 +34,11 @@
     --ring: 221.2 83.2% 53.3%;
 
     --radius: 0.5rem;
+    
+    /* Scrollbar colors */
+    --scrollbar-thumb: 213 27% 84%;
+    --scrollbar-track: 0 0% 94%;
+    --scrollbar-hover: 213 27% 75%;
   }
 
   html.dark {
@@ -64,6 +69,11 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+    
+    /* Dark mode scrollbar colors */
+    --scrollbar-thumb: 217 33% 25%;
+    --scrollbar-track: 222 47% 11%;
+    --scrollbar-hover: 217 33% 30%;
   }
   
   /* Theme classes for rewards system - use html for higher specificity */
@@ -102,6 +112,11 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+    
+    /* Dark theme scrollbar colors */
+    --scrollbar-thumb: 217 33% 25%;
+    --scrollbar-track: 222 47% 11%;
+    --scrollbar-hover: 217 33% 30%;
   }
   
   /* Focus theme */
@@ -130,6 +145,11 @@
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 221.2 83.2% 53.3%;
+    
+    /* Focus theme scrollbar - softer, less distracting */
+    --scrollbar-thumb: 220 10% 85%;
+    --scrollbar-track: 0 0% 98%;
+    --scrollbar-hover: 220 10% 75%;
   }
   
   /* Nature theme */
@@ -158,6 +178,11 @@
     --border: 120 15% 85%;
     --input: 120 15% 85%;
     --ring: 150 60% 40%;
+    
+    /* Nature theme scrollbar - green tinted */
+    --scrollbar-thumb: 150 30% 60%;
+    --scrollbar-track: 120 10% 90%;
+    --scrollbar-hover: 150 40% 50%;
   }
   
   /* Vibrant theme */
@@ -186,6 +211,11 @@
     --border: 280 40% 85%;
     --input: 280 40% 85%;
     --ring: 280 70% 50%;
+    
+    /* Vibrant theme scrollbar - purple tinted */
+    --scrollbar-thumb: 280 60% 65%;
+    --scrollbar-track: 280 30% 92%;
+    --scrollbar-hover: 280 70% 55%;
   }
   
   /* Professional theme */
@@ -214,6 +244,11 @@
     --border: 215 30% 85%;
     --input: 215 30% 85%;
     --ring: 215 70% 40%;
+    
+    /* Professional theme scrollbar - blue tinted */
+    --scrollbar-thumb: 215 50% 50%;
+    --scrollbar-track: 215 20% 90%;
+    --scrollbar-hover: 215 60% 40%;
   }
   
   /* Writer's Delight (Premium) theme */
@@ -242,20 +277,72 @@
     --border: 35 30% 85%;
     --input: 35 30% 85%;
     --ring: 35 80% 40%;
+    
+    /* Writer's Delight scrollbar - warm sepia tinted */
+    --scrollbar-thumb: 35 60% 65%;
+    --scrollbar-track: 35 20% 90%;
+    --scrollbar-hover: 35 70% 55%;
   }
   
   /* Custom Accent (Premium) theme - base with primary accents customizable */
   html.theme-custom-accent {
     /* Default colors, customized primary/accent tones are applied through JavaScript */
   }
-}
-
-@layer base {
+  
+  /* Scrollbar styling for different browsers */
+  /* Webkit browsers (Chrome, Safari, newer Edge) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--scrollbar-track));
+    border-radius: 5px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--scrollbar-thumb));
+    border-radius: 5px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--scrollbar-hover));
+  }
+  
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--scrollbar-thumb)) hsl(var(--scrollbar-track));
+  }
+  
+  /* Apply the custom-scrollbar class for more targeted styling */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: hsl(var(--scrollbar-track));
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--scrollbar-thumb));
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--scrollbar-hover));
+  }
+  
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 

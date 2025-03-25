@@ -28,7 +28,7 @@ export interface DailyMission {
   id: string
   title: string
   description: string
-  type: 'use_tones' | 'rewrite_words' | 'rewrite_count' | 'battle' | 'custom_tone' | 'feedback' | 'checkin'
+  type: 'use_tones' | 'rewrite_words' | 'rewrite_count' | 'battle' | 'feedback' | 'checkin'
   goal: number
   progress: number
   completed: boolean
@@ -49,7 +49,6 @@ export interface GameificationResult {
   checkAndUpdateStreak: () => void
   trackToneUsage: (tone: string, wordCount: number) => void
   trackBattle: (winner: string, loser: string) => void
-  trackCustomTone: () => void
   trackFeedback: () => void
   trackWordWizard: (wordCount: number) => void
   

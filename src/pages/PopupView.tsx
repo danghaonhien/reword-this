@@ -17,7 +17,6 @@ import {
 import ToneSelector from '../components/ToneSelector'
 import RewordHistory from '../components/RewordHistory'
 import RewriteBattle from '../components/RewriteBattle'
-import CustomToneBuilder from '../components/CustomToneBuilder'
 import RewardsPanel from '../components/RewardsPanel'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import { useRewrite } from '../hooks/useRewrite'
@@ -69,10 +68,10 @@ interface PopupViewProps {
 const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
   const [textToRewrite, setTextToRewrite] = useState(selectedText)
   const [rewrite, setRewrite] = useState('')
-  const [isRewording, setIsRewording] = useState(false)
+  const [isRewriting, setIsRewriting] = useState(false)
   const [selectedTone, setSelectedTone] = useState('clarity')
   const [showInput, setShowInput] = useState(true)
-  const [currentView, setCurrentView] = useState<'battle' | 'custom' | 'rewards' | 'history' | null>(null)
+  const [currentView, setCurrentView] = useState<'battle' | 'rewards' | 'history' | null>(null)
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([])
   const [showAllHistory, setShowAllHistory] = useState(false)
   const gameification = useGameification()
@@ -181,7 +180,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
     // Clear previous rewrite
     setRewrite('')
     // Set loading state
-    setIsRewording(true)
+    setIsRewriting(true)
     
     // Use the useRewrite hook's rewrite function
     try {
@@ -204,7 +203,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
     } catch (error) {
       console.error("Error during inline rewrite:", error)
     } finally {
-      setIsRewording(false)
+      setIsRewriting(false)
     }
   }
 
@@ -255,9 +254,9 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
   const hasMoreHistoryItems = !showAllHistory && historyItems.length > 4;
 
   return (
-    <div className="flex flex-grow h-full min-h-screen bg-background">
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col h-screen relative">
+    <div className="flex h-screen bg-background text-foreground">
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden relative">
         {/* Reward notification component for displaying new unlocks */}
         <RewardNotification />
         
@@ -493,7 +492,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                   {/* Content Container - flex-grow to push controls to bottom */}
                   <div className="flex-grow overflow-y-auto custom-scrollbar  pb-32">
                     {/* Rewrite Result (when available) */}
-                    {isRewording ? (
+                    {isRewriting ? (
                       <div className="mb-4 bg-card border border-border rounded-md p-4">
                         <div className="flex flex-col items-center justify-center py-4">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -515,7 +514,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                             <button
                               onClick={() => {
                                 setRewrite('')
-                                setIsRewording(false)
+                                setIsRewriting(false)
                               }}
                               className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
                               title="Edit original text"
@@ -559,8 +558,8 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                     ) : null}
 
                     {/* Collapsible Text Input (collapsed when rewrite is available) */}
-                    <div className={`${rewrite || isRewording ? ' rounded-md overflow-hidden' : ''}`}>
-                      {(!rewrite && !isRewording) && (
+                    <div className={`${rewrite || isRewriting ? ' rounded-md overflow-hidden' : ''}`}>
+                      {(!rewrite && !isRewriting) && (
                         <TextInput 
                           text={textToRewrite} 
                           onTextChange={setTextToRewrite} 
@@ -580,10 +579,10 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                     <div className="flex justify-center mt-4">
                       <button
                         onClick={handleRewordButtonClick}
-                        disabled={!textToRewrite.trim() || isRewording}
+                        disabled={!textToRewrite.trim() || isRewriting}
                         className="w-full max-w-md py-2.5 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isRewording ? 'Rewriting...' : 'Reword This!'}
+                        {isRewriting ? 'Rewriting...' : 'Reword This!'}
                       </button>
                     </div>
                   </div>
@@ -622,31 +621,15 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                     />
                   </div>
                 </div>
-              ) : currentView === 'custom' ? (
-                <div className="flex flex-col h-full">
-                  <button
-                    onClick={resetView}
-                    className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
-                  >
-                    ← Back to Home
-                  </button>
-                  
-                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1">
-                    <CustomToneBuilder
-                      originalText={textToRewrite}
-                      onRewriteAgain={rewriteAgain}
-                    />
-                  </div>
-                </div>
               ) : null}
             </div>
           )}
         </div>
       </div>
       
-      {/* Sidebar - moved to the right */}
+      {/* Sidebar - remove Custom Tone button */}
       <div className="flex flex-col items-center w-12 py-4 bg-card border-l border-border">
-        {/* Navigation buttons - reordering to put ThemeSwitcher below Custom Tone */}
+        {/* Navigation buttons with Custom Tone removed */}
         <div className="flex flex-col items-center gap-3 mb-auto">
           <div className="relative group">
             <button 
@@ -661,22 +644,9 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             </span>
           </div>
           
+          {/* Theme Switcher placed directly after Battle */}
           <div className="relative group">
-            <button 
-              onClick={() => setCurrentView('custom')}
-              className={`p-2 rounded-full ${currentView === 'custom' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-              title="Custom Tone Rewrite"
-            >
-              <Palette className="w-4 h-4" />
-            </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
-              Custom Tone
-            </span>
-          </div>
-
-          {/* Theme Switcher moved here */}
-          <div className="relative group">
-            <div className="p-2 rounded-full hover:bg-muted/50 text-muted-foreground">
+            <div className="p-2  rounded-full hover:bg-muted/50 text-muted-foreground">
               <ThemeSwitcher />
             </div>
             <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">

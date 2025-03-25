@@ -44,17 +44,4 @@ export const getBattlePrompt = (text: string): string => {
 
 Text:
 "${text}"`;
-};
-
-/**
- * Generates prompts for the custom tone builder feature
- */
-export const getCustomTonePrompt = (referenceText: string, textToRewrite: string): string => {
-  return `Use the writing style from the reference sample below as a tone guide. Reword the second text to match this style, keeping the meaning intact.
-
-Reference Style:
-"${referenceText}"
-
-Text to Reword:
-"${textToRewrite}"`;
 }; 
