@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useGameification } from '@/hooks/useGameification'
-import { gameificationState } from '@/hooks/useGameification'
 import { 
   UnlockableTone, 
   Theme, 
@@ -16,13 +15,9 @@ interface RewardsPanelProps {
   onBack?: () => void;
 }
 
-// Counter to force component refresh
-let refreshCounter = 0;
-
 const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState<RewardTab>('tones')
   const [showUnlockNotification, setShowUnlockNotification] = useState(false)
-  const [forceUpdate, setForceUpdate] = useState(0)
   const [recentlyUnlocked, setRecentlyUnlocked] = useState<{
     tones: string[],
     themes: string[],
@@ -32,61 +27,23 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
   // Create a reference to track if component is mounted
   const isMounted = useRef(true);
   
-  // Get data from gameification hook
-  const gameificationData = useGameification()
-  
-  // Use global state values for UI display
-  const xp = gameificationState.xp;
-  const level = gameificationState.level;
-  const streak = gameificationState.streak;
-  
-  // Keep local state for global state updates
-  const [globalStateUpdatedAt, setGlobalStateUpdatedAt] = useState(gameificationState.updatedAt)
-  
-  // Keep other data from the hook
+  // Get all data from gameification hook
   const {
+    xp,
+    level,
+    streak,
     unlockableTones,
     themes,
     toneMasterBadges,
+    dailyMissions,
     activeBadge,
-    setActiveBadge,
-    dailyMissions
-  } = gameificationData
+    setActiveBadge
+  } = useGameification()
   
   // Get the next items to unlock
   const nextTone = getNextUnlockableTone(unlockableTones, xp, streak)
   const nextTheme = getNextUnlockableTheme(themes, xp, level, streak)
   const nextBadge = getNextUnlockableBadge(toneMasterBadges)
-  
-  // Monitor global state updates
-  useEffect(() => {
-    console.log('Setting up global state update monitor');
-    
-    const handleGlobalStateUpdate = (event: Event) => {
-      if (!isMounted.current) return;
-      
-      console.log('Global state updated, refreshing rewards panel');
-      setGlobalStateUpdatedAt(gameificationState.updatedAt);
-      setForceUpdate(prev => prev + 1);
-    };
-    
-    window.addEventListener('gameStateUpdated', handleGlobalStateUpdate);
-    
-    // Setup polling as a fallback to ensure we catch updates
-    const interval = setInterval(() => {
-      if (isMounted.current && gameificationState.updatedAt !== globalStateUpdatedAt) {
-        console.log('Detected global state change via polling');
-        setGlobalStateUpdatedAt(gameificationState.updatedAt);
-        setForceUpdate(prev => prev + 1);
-      }
-    }, 1000);
-    
-    return () => {
-      window.removeEventListener('gameStateUpdated', handleGlobalStateUpdate);
-      clearInterval(interval);
-      isMounted.current = false;
-    };
-  }, []);  // Empty dependency array to avoid re-creating listeners
   
   // Listen for unlock events
   useEffect(() => {
@@ -102,10 +59,6 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
       setShowUnlockNotification(true);
       setRecentlyUnlocked(details.unlockedDetails || { tones: [], themes: [], badges: [] });
       
-      // Force immediate refresh
-      refreshCounter++;
-      setForceUpdate(refreshCounter);
-      
       // Hide notification after 3 seconds
       setTimeout(() => {
         if (isMounted.current) {
@@ -118,6 +71,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
     
     return () => {
       window.removeEventListener('rewardUnlocked', handleRewardUnlocked);
+      isMounted.current = false;
     };
   }, []);
 
@@ -126,17 +80,17 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
     console.log('RewardsPanel state update:', { 
       xp, 
       level, 
-      streak, 
-      forceUpdate, 
-      globalStateUpdatedAt,
-      globalState: gameificationState 
+      streak,
+      unlockableTones,
+      themes,
+      toneMasterBadges,
+      dailyMissions,
+      activeBadge
     });
-  }, [xp, level, streak, forceUpdate, globalStateUpdatedAt]);
+  }, [xp, level, streak, unlockableTones, themes, toneMasterBadges, dailyMissions, activeBadge]);
 
-  // Use the key pattern to force a complete re-render on any state change
   return (
-    <div className="bg-card border border-border rounded-md shadow-sm relative" 
-      key={`rewards-panel-${forceUpdate}-${globalStateUpdatedAt}-${xp}-${level}-${streak}`}>
+    <div className="bg-card border border-border rounded-md shadow-sm relative">
       {/* Unlock Notification */}
       {showUnlockNotification && (
         <div className="absolute top-0 left-0 right-0 bg-primary text-primary-foreground text-center py-2 px-3 text-sm font-medium z-10 animate-fadeInDown">
@@ -188,8 +142,8 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                 <div className="flex items-center justify-between text-xs">
                   <span>Theme: {nextTheme.name}</span>
                   <span className="text-xxs">
-                    {nextTheme.unlockRequirement.type === 'xp' 
-                      ? `${xp}/${nextTheme.unlockRequirement.value} XP` 
+                    {nextTheme.unlockRequirement.type === 'xp'
+                      ? `${xp}/${nextTheme.unlockRequirement.value} XP`
                       : nextTheme.unlockRequirement.type === 'level'
                       ? `Level ${level}/${nextTheme.unlockRequirement.value}`
                       : `${streak}/${nextTheme.unlockRequirement.value} day streak`}

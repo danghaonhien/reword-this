@@ -216,11 +216,15 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
         setRewrite(result)
         // Save to history
         saveToHistory(text, result, tone)
-        // Add XP
+        // Add XP - this will also update the lastRewrite time through our fixed addXP function
         addXP(5)
+        
         // Track tone usage for badges and rewards (with word count)
         const wordCount = text.split(/\s+/).filter(word => word.trim().length > 0).length;
         gameification.trackToneUsage(tone, wordCount);
+        
+        // Log streak state for debugging
+        console.log('Current streak after rewrite:', gameification.streak);
       }
     } catch (error) {
       console.error("Error during inline rewrite:", error)
