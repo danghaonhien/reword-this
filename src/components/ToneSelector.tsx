@@ -163,7 +163,7 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
         <span className="font-medium">Surprise Me!</span>
         
         {/* Tooltip explaining surprise me functionality */}
-        <div className="fixed bottom-[calc(100%+10px)] left-1/2 transform -translate-x-1/2 w-64
+        <div className="absolute bottom-[calc(100%+8px)] left-1/2 transform -translate-x-1/2 w-64
                      bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
                      opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-[100]
                      before:content-[''] before:absolute before:bottom-[-4px] before:left-1/2 before:transform before:-translate-x-1/2
