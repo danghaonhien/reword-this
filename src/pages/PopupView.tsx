@@ -14,7 +14,8 @@ import {
   Trash2,
   ChevronDown,
   Copy,
-  Check
+  Check,
+  Gift
 } from 'lucide-react'
 import ToneSelector from '../components/ToneSelector'
 import RewordHistory from '../components/RewordHistory'
@@ -80,6 +81,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
   const { addXP, xp, level, streak } = gameification
   const { rewrite: rewriteText } = useRewrite()
   const [copiedInline, setCopiedInline] = useState(false)
+  const [copiedHistoryId, setCopiedHistoryId] = useState<string | null>(null)
   
   // Close the popup window (extension only)
   const closeApp = () => {
@@ -283,6 +285,16 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
       .catch(err => console.error('Failed to copy text:', err));
   };
 
+  // Handle history item copy
+  const handleHistoryCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopiedHistoryId(id);
+        setTimeout(() => setCopiedHistoryId(null), 2000);
+      })
+      .catch(err => console.error('Failed to copy text:', err));
+  };
+
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Main Content */}
@@ -331,6 +343,17 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                                 minute: '2-digit' 
                               })}
                             </span>
+                            <button
+                              onClick={() => handleHistoryCopy(item.rewrittenText, item.id)}
+                              className="p-1 rounded-full hover:bg-secondary/20 text-muted-foreground hover:text-foreground"
+                              title="Copy to clipboard"
+                            >
+                              {copiedHistoryId === item.id ? (
+                                <Check className="w-3 h-3" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                            </button>
                             <button
                               onClick={() => handleDeleteHistoryItem(item.id)}
                               className="p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
@@ -696,7 +719,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
               className={`p-2 rounded-full ${currentView === 'rewards' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
               // title="Rewards"
             >
-              <Sparkles className="w-4 h-4" />
+              <Gift className="w-4 h-4" />
             </button>
             <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-10">
               Rewards

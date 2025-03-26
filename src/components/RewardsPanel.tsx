@@ -207,7 +207,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                     {tone.name}
                   </div>
                   {!tone.unlocked && (
-                    <div className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                    <div className="text-xxs bg-muted px-1.5 py-0.5 rounded">
                       {tone.unlockRequirement.type === 'xp'
                         ? `${tone.unlockRequirement.value} XP`
                         : `${tone.unlockRequirement.value} Day Streak`}
@@ -267,7 +267,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                     {theme.name}
                   </div>
                   {!theme.unlocked && (
-                    <div className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                    <div className="text-xxs bg-muted px-1.5 py-0.5 rounded">
                       {theme.unlockRequirement.type === 'xp'
                         ? `${theme.unlockRequirement.value} XP`
                         : theme.unlockRequirement.type === 'streak'
@@ -339,7 +339,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                       {mission.description}
                     </div>
                   </div>
-                  <div className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                  <div className="text-xxs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                     {mission.reward.type === 'xp'
                       ? `+${mission.reward.value} XP`
                       : `+${mission.reward.value} Streak`}
