@@ -298,12 +298,12 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-visible relative">
         {/* Reward notification component for displaying new unlocks */}
         <RewardNotification />
         
         {/* Main content - conditionally render based on current view */}
-        <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 h-screen max-h-screen overflow-visible flex flex-col">
           {currentView === 'rewards' ? (
             <div className="h-full min-h-0 overflow-auto custom-scrollbar p-4">
               <button
@@ -612,7 +612,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                   </div>
                   
                   {/* Fixed Bottom Section with Tone Selector and Buttons - Now at bottom of page */}
-                  <div className="absolute bottom-4 left-4 right-4 pt-4 border-border bg-background z-10 shadow-sm">
+                  <div className="absolute bottom-4 left-4 right-4 pt-4 border-border bg-background z-10 shadow-sm overflow-visible">
                     <ToneSelector 
                       selectedTone={selectedTone} 
                       onChange={setSelectedTone} 

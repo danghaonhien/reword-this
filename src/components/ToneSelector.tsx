@@ -80,7 +80,10 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
             {/* Tooltip showing tone description */}
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48
                          bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
-                         opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-10">
+                         opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-[100]
+                         before:content-[''] before:absolute before:bottom-[-4px] before:left-1/2 before:transform before:-translate-x-1/2
+                         before:w-0 before:h-0 before:border-l-[6px] before:border-l-transparent
+                         before:border-r-[6px] before:border-r-transparent before:border-t-[6px] before:border-t-popover">
               <div className="text-xs font-medium">{tone.label}</div>
               <div className="text-xs text-muted-foreground mt-1">
                 {unlockableTones.find(t => t.id === tone.id)?.description || ''}
@@ -109,7 +112,10 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
             {/* Tooltip showing unlock requirements */}
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48
                          bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
-                         opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                         opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100]
+                         before:content-[''] before:absolute before:bottom-[-4px] before:left-1/2 before:transform before:-translate-x-1/2
+                         before:w-0 before:h-0 before:border-l-[6px] before:border-l-transparent
+                         before:border-r-[6px] before:border-r-transparent before:border-t-[6px] before:border-t-popover">
               <div className="text-xs font-medium">{tone.name}</div>
               <div className="text-xs text-muted-foreground mt-1">{tone.description}</div>
               <div className="text-xs mt-1 font-medium">
@@ -136,7 +142,10 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
             {/* Premium tooltip */}
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48
                          bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
-                         opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                         opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100]
+                         before:content-[''] before:absolute before:bottom-[-4px] before:left-1/2 before:transform before:-translate-x-1/2
+                         before:w-0 before:h-0 before:border-l-[6px] before:border-l-transparent
+                         before:border-r-[6px] before:border-r-transparent before:border-t-[6px] before:border-t-popover">
               <div className="text-xs font-medium">Premium Tones</div>
               <div className="text-xs text-muted-foreground mt-1">Subscribe to unlock exclusive premium tones.</div>
             </div>
@@ -154,9 +163,12 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
         <span className="font-medium">Surprise Me!</span>
         
         {/* Tooltip explaining surprise me functionality */}
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64
+        <div className="fixed bottom-[calc(100%+10px)] left-1/2 transform -translate-x-1/2 w-64
                      bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
-                     opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-10">
+                     opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-[100]
+                     before:content-[''] before:absolute before:bottom-[-4px] before:left-1/2 before:transform before:-translate-x-1/2
+                     before:w-0 before:h-0 before:border-l-[6px] before:border-l-transparent
+                     before:border-r-[6px] before:border-r-transparent before:border-t-[6px] before:border-t-popover">
           <div className="text-xs font-medium">Surprise Me</div>
           <div className="text-xs text-muted-foreground mt-1">
             Automatically selects a random tone from your unlocked tones to rewrite your text.

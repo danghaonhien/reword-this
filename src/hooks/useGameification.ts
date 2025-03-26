@@ -68,25 +68,25 @@ const initialUnlockableTones: UnlockableTone[] = [
     name: 'Friendly',
     description: 'Warm and approachable tone',
     unlockRequirement: { type: 'xp', value: 50 },
-    unlocked: false
-  },
-  {
+      unlocked: false
+    },
+    {
     id: 'formal',
     name: 'Formal',
     description: 'Professional and structured communication',
     unlockRequirement: { type: 'xp', value: 100 },
-    unlocked: false
-  },
-  {
+      unlocked: false
+    },
+    {
     id: 'gen_z',
     name: 'Gen Z',
     description: 'Modern, casual internet slang with emojis',
     unlockRequirement: { type: 'xp', value: 200 },
-    unlocked: false
-  },
-  {
-    id: 'executive',
-    name: 'Executive',
+      unlocked: false
+    },
+    {
+      id: 'executive',
+      name: 'Executive',
     description: 'Authoritative and decisive communication',
     unlockRequirement: { type: 'xp', value: 300 },
     unlocked: false
@@ -96,8 +96,8 @@ const initialUnlockableTones: UnlockableTone[] = [
     name: 'Creative',
     description: 'Imaginative and expressive writing',
     unlockRequirement: { type: 'streak', value: 5 },
-    unlocked: false
-  }
+      unlocked: false
+    }
 ];
 
 const initialThemes: Theme[] = [

@@ -348,4 +348,42 @@
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Tooltip styling for better visibility across app */
+.tooltip-arrow {
+  position: relative;
+}
+
+.tooltip-arrow::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px 8px 0;
+  border-style: solid;
+  border-color: hsl(var(--popover)) transparent transparent transparent;
+}
+
+/* Helper class to ensure tooltips are always on top */
+.tooltip-container {
+  position: relative;
+  z-index: 9999;
+}
+
+/* Animation for tooltips */
+@keyframes fade-in-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 0.3s ease-out forwards;
 } 
