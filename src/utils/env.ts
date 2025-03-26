@@ -24,6 +24,15 @@ export const isDev = () => APP_ENV === 'development'
 export const isProd = () => APP_ENV === 'production'
 
 /**
+ * Check if user has premium access
+ * This uses the ENABLE_PREMIUM_FEATURES flag and can be extended
+ * with subscription checks in the future
+ */
+export const isPremium = (): boolean => {
+  return ENABLE_PREMIUM_FEATURES;
+}
+
+/**
  * Validates that the OpenAI API key looks correctly formatted
  * Basic validation checks:
  * 1. Not empty

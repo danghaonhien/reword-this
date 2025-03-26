@@ -3,6 +3,7 @@ import { CopyIcon, CheckIcon, RefreshCw, ChevronDown, ChevronUp } from 'lucide-r
 import { useGameification } from '../hooks/useGameification'
 import { getBattlePrompt } from '@/utils/promptUtils'
 import { callOpenAIForBattle } from '@/services/apiService'
+import { useUsageLimits } from '@/hooks/useUsageLimits'
 
 // Define available tone pairs for battling
 const TONE_PAIRS = [
@@ -36,6 +37,16 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
   
   // Use the gameification hooks to track battles and add XP
   const { trackBattle, addXP } = useGameification()
+  // Use usage limits to track battle usage
+  const usageLimits = useUsageLimits()
+  
+  // Check usage limits when the component mounts
+  useEffect(() => {
+    // When the battle component mounts, check if user has already used their daily limit
+    if (!usageLimits.isPremium && usageLimits.battlesRemaining <= 0 && !hasBattled) {
+      onRewriteAgain(); // This navigates back to home
+    }
+  }, [usageLimits.battlesRemaining, usageLimits.isPremium, hasBattled, onRewriteAgain]);
   
   // Listen for battle mission completion
   useEffect(() => {
@@ -57,6 +68,11 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
   }, []);
 
   const generateBattle = async () => {
+    // Check if we're at the free tier limit for battles
+    if (!usageLimits.isPremium && usageLimits.battlesRemaining <= 0) {
+      return;
+    }
+    
     setIsLoading(true)
     
     try {
@@ -75,9 +91,12 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
       setVersionA(`${selectedTonePair.a.name} version: ${responseA}`)
       setVersionB(`${selectedTonePair.b.name} version: ${responseB}`)
       
+      // Only after successful generation, track the battle usage
+      usageLimits.trackBattle()
+      setHasBattled(true)
+      
       // Add XP just for generating a battle (encourages exploration)
       addXP(3)
-      setHasBattled(true)
     } catch (error) {
       console.error("Error generating battle:", error)
     } finally {
@@ -142,14 +161,35 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
                 The same text rewritten in two different tones.<br/>
                 Choose the version you prefer to use it.
               </p>
-              <div className="flex justify-center">
+              <div className="flex justify-center relative group">
                 <button
                   onClick={generateBattle}
                   className="px-4 py-2 bg-accent text-accent-foreground rounded-md 
                             hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50"
+                  disabled={!usageLimits.isPremium && usageLimits.battlesRemaining <= 0}
                 >
-                  Start Rewrite Battle
+                  {!usageLimits.isPremium && usageLimits.battlesRemaining <= 0 ? 'Free Limit Reached' : (!usageLimits.isPremium ? `Start Rewrite Battle (${usageLimits.battlesRemaining}/1)` : 'Start Rewrite Battle')}
                 </button>
+                
+                {/* Tooltip explaining battle limit */}
+                <div className="absolute bottom-[calc(100%+10px)] left-1/2 transform -translate-x-1/2 w-64
+                             bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
+                             opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-[100]
+                             before:content-[''] before:absolute before:bottom-[-4px] before:left-1/2 before:transform before:-translate-x-1/2
+                             before:w-0 before:h-0 before:border-l-[6px] before:border-l-transparent
+                             before:border-r-[6px] before:border-r-transparent before:border-t-[6px] before:border-t-popover">
+                  <div className="text-xs font-medium">Rewrite Battle</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {!usageLimits.isPremium && usageLimits.battlesRemaining <= 0 
+                      ? "You've reached your daily battle limit for the free tier. Come back tomorrow for another free battle, or upgrade to premium for unlimited access!"
+                      : "Compare two different tones and choose your favorite. A fun way to explore different writing styles!"}
+                  </div>
+                  {!usageLimits.isPremium && usageLimits.battlesRemaining > 0 && (
+                    <div className="text-xs mt-1.5 font-medium text-accent">
+                      Free Tier: 1 battle per day
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             

@@ -27,6 +27,7 @@ import { useGameification } from '../hooks/useGameification'
 import { Theme, UnlockableTone } from '../hooks/gameificationTypes'
 import { calculateProgress, getNextUnlockableTone, getNextUnlockableTheme, getLevelTitle } from '../utils/gameificationUtils'
 import RewardNotification from '../components/RewardNotification'
+import { useUsageLimits } from '../hooks/useUsageLimits'
 
 // Get rewards data from gameification system
 const getNextReward = (level: number): { name: string, unlocksAt: number } => {
@@ -82,6 +83,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
   const { rewrite: rewriteText } = useRewrite()
   const [copiedHistoryId, setCopiedHistoryId] = useState<string | null>(null)
   const [copiedInline, setCopiedInline] = useState(false)
+  const usageLimits = useUsageLimits()
   
   // Close the popup window (extension only)
   const closeApp = () => {
@@ -168,23 +170,35 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
       return;
     }
     
+    // Check if we've reached our daily rewrite limit
+    if (!usageLimits.isPremium && usageLimits.rewritesRemaining <= 0) {
+      alert('You have reached your daily rewrite limit for the free tier. Please try again tomorrow or upgrade to premium.');
+      return;
+    }
+    
     // Trigger the rewrite with the current text and tone
     inlineRewrite(textToRewrite, selectedTone)
   }
 
   // Function for the surprise me feature
   const handleSurpriseMe = () => {
+    // Check if we've reached our daily surprise me limit
+    if (!usageLimits.isPremium && usageLimits.surpriseMeRemaining <= 0) {
+      alert('You have reached your daily Surprise Me limit for the free tier. Please try again tomorrow or upgrade to premium.');
+      return;
+    }
+    
     // Set the tone to surprise (only if it's different)
     if (selectedTone !== 'surprise') {
       setSelectedTone('surprise')
     }
     
     // Trigger the rewrite with surprise tone
-    inlineRewrite(textToRewrite, 'surprise')
+    inlineRewrite(textToRewrite, 'surprise', true)
   }
 
   // Function to handle inline rewrites
-  const inlineRewrite = async (text: string, tone: string) => {
+  const inlineRewrite = async (text: string, tone: string, isSurpriseMe = false) => {
     if (!text.trim()) return;
     
     // Clear previous rewrite
@@ -219,6 +233,13 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
         saveToHistory(text, result, tone)
         // Add XP - this will also update the lastRewrite time through our fixed addXP function
         addXP(5)
+        
+        // Track usage for free tier limits
+        if (isSurpriseMe) {
+          usageLimits.trackSurpriseMe();
+        } else {
+          usageLimits.trackRewrite();
+        }
         
         // Track tone usage for badges and rewards (with word count)
         const wordCount = text.split(/\s+/).filter(word => word.trim().length > 0).length;
@@ -300,6 +321,16 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
         setTimeout(() => setCopiedInline(false), 2000)
       })
       .catch(err => console.error('Failed to copy text:', err))
+  }
+
+  // Renamed to navigateToBattle and improved to check limits
+  const navigateToBattle = () => {
+    // Check if we've reached battle limit before navigating
+    if (!usageLimits.isPremium && usageLimits.battlesRemaining <= 0) {
+      alert('You have reached your daily battle limit for the free tier. Please try again tomorrow or upgrade to premium.');
+      return;
+    }
+    setCurrentView('battle');
   }
 
   return (
@@ -618,7 +649,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                     </div>
                   </div>
                   
-                  {/* Fixed Bottom Section with Tone Selector and Buttons - Now at bottom of page */}
+                  {/* Fixed Bottom Section with Tone Selector and Buttons */}
                   <div className="absolute bottom-4 left-4 right-4 pt-4 border-border bg-background z-10 shadow-sm overflow-visible">
                     <ToneSelector 
                       selectedTone={selectedTone} 
@@ -627,13 +658,38 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                     />
                     
                     <div className="flex justify-center mt-4">
-                      <button
-                        onClick={handleRewordButtonClick}
-                        disabled={!textToRewrite.trim() || isRewriting}
-                        className="w-full max-w-md py-2.5 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isRewriting ? 'Rewriting...' : 'Reword This!'}
-                      </button>
+                      <div className="relative group w-full">
+                        <button
+                          onClick={handleRewordButtonClick}
+                          disabled={!textToRewrite.trim() || isRewriting || (!usageLimits.isPremium && usageLimits.rewritesRemaining <= 0)}
+                          className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isRewriting ? 'Rewriting...' : 
+                           (!usageLimits.isPremium && usageLimits.rewritesRemaining <= 0) ? 
+                           'Free Limit Reached' : 
+                           `Reword This${!usageLimits.isPremium ? ` (${usageLimits.rewritesRemaining}/10)` : ''}`}
+                        </button>
+                        
+                        {/* Tooltip explaining rewrite limit */}
+                        <div className="absolute bottom-[calc(100%+10px)] left-1/2 transform -translate-x-1/2 w-64
+                                   bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
+                                   opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-[100]
+                                   before:content-[''] before:absolute before:bottom-[-4px] before:left-1/2 before:transform before:-translate-x-1/2
+                                   before:w-0 before:h-0 before:border-l-[6px] before:border-l-transparent
+                                   before:border-r-[6px] before:border-r-transparent before:border-t-[6px] before:border-t-popover">
+                          <div className="text-xs font-medium">Reword This</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {!usageLimits.isPremium && usageLimits.rewritesRemaining <= 0 
+                              ? "You've reached your daily rewrite limit for the free tier. Come back tomorrow for more free rewrites, or upgrade to premium for unlimited access!"
+                              : "Rewrite your text in the selected tone. A powerful way to improve your writing!"}
+                          </div>
+                          {!usageLimits.isPremium && usageLimits.rewritesRemaining > 0 && (
+                            <div className="text-xs mt-1.5 font-medium text-accent">
+                              Free Tier: 10 rewrites per day
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </>
@@ -677,21 +733,45 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
         </div>
       </div>
       
-      {/* Sidebar - remove Custom Tone button */}
+      {/* Sidebar - without UsageDisplay */}
       <div className="flex flex-col items-center w-12 py-4 bg-card border-l border-border">
-        {/* Navigation buttons with Custom Tone removed */}
+        {/* Navigation buttons */}
         <div className="flex flex-col items-center gap-3 mb-auto">
           <div className="relative group">
             <button 
-              onClick={() => setCurrentView('battle')}
-              className={`p-2 rounded-full ${currentView === 'battle' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-              // title="Battle Rewrite"
+              onClick={navigateToBattle}
+              disabled={!usageLimits.isPremium && usageLimits.battlesRemaining <= 0}
+              className={`p-2 rounded-full ${
+                currentView === 'battle' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : !usageLimits.isPremium && usageLimits.battlesRemaining <= 0
+                    ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                    : 'hover:bg-muted/50 text-muted-foreground'
+              }`}
             >
               <Swords className="w-4 h-4" />
             </button>
-            <span className="absolute right-[calc(100%+8px)] top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
-              Rewrite Battle
+            <span className="absolute right-[calc(100%+8px)] top-0 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap">
+              {!usageLimits.isPremium && usageLimits.battlesRemaining <= 0 
+                ? "Free Limit Reached" 
+                : `Rewrite Battle${!usageLimits.isPremium ? ` (${usageLimits.battlesRemaining}/1)` : ''}`}
             </span>
+            {/* Tooltip explaining battle limit */}
+            <div className="absolute right-[calc(100%+8px)] top-0 w-64
+                       bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
+                       opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-[100]">
+              <div className="text-xs font-medium">Rewrite Battle</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {!usageLimits.isPremium && usageLimits.battlesRemaining <= 0 
+                  ? "You've reached your daily battle limit for the free tier. Come back tomorrow for another free battle, or upgrade to premium for unlimited access!"
+                  : "Compare two different tones and choose your favorite. A fun way to explore different writing styles!"}
+              </div>
+              {!usageLimits.isPremium && usageLimits.battlesRemaining > 0 && (
+                <div className="text-xs mt-1.5 font-medium text-accent">
+                  Free Tier: 1 battle per day
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Theme Switcher placed directly after Battle */}
@@ -708,7 +788,6 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             <button 
               onClick={() => setCurrentView('history')}
               className={`p-2 rounded-full ${currentView === 'history' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-              // title="Rewrite History"
             >
               <History className="w-4 h-4" />
             </button>
@@ -727,13 +806,12 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
           </div>
         </div>
         
-        {/* Bottom controls - remove ThemeSwitcher from here */}
+        {/* Bottom controls */}
         <div className="flex flex-col items-center gap-3 mt-auto">
           <div className="relative group">
             <button
               onClick={() => setCurrentView('rewards')}
               className={`p-2 rounded-full ${currentView === 'rewards' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted/50 text-muted-foreground'}`}
-              // title="Rewards"
             >
               <Gift className="w-4 h-4" />
             </button>
@@ -746,7 +824,6 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
             <button
               onClick={closeApp}
               className="p-2 rounded-full hover:bg-primary/20 text-primary"
-              // title="Close"
             >
               <X className="w-4 h-4" />
             </button>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Sparkles, Lock } from 'lucide-react'
 import { useGameification } from '@/hooks/useGameification'
 import { UnlockableTone } from '@/hooks/gameificationTypes'
+import { useUsageLimits } from '@/hooks/useUsageLimits'
 import PremiumRewardTeaser from './PremiumRewardTeaser'
 
 interface ToneSelectorProps {
@@ -16,6 +17,7 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
   onSurpriseMe 
 }) => {
   const { unlockableTones } = useGameification()
+  const { surpriseMeRemaining, isPremium } = useUsageLimits()
   const [recentlyUnlocked, setRecentlyUnlocked] = useState<string[]>([])
   
   // Get all available tones
@@ -32,6 +34,9 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
   const premiumTones = unlockableTones
     .filter(tone => !tone.unlocked && tone.unlockRequirement.value === 9999)
     .slice(0, 1) // Just show one premium tone
+  
+  // Check if Surprise Me is available in free tier
+  const isSurpriseMeAvailable = isPremium || surpriseMeRemaining > 0
   
   // Listen for unlocked tones
   useEffect(() => {
@@ -155,12 +160,17 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
       
       <button
         onClick={onSurpriseMe}
-        className="w-full flex items-center justify-center gap-2 py-2.5 px-3 
-                 bg-accent text-accent-foreground rounded-md hover:bg-accent/90
-                 transition-colors shadow-sm group relative"
+        disabled={!isSurpriseMeAvailable && !isPremium}
+        className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 
+                 rounded-md transition-colors shadow-sm group relative
+                 ${isSurpriseMeAvailable 
+                   ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
+                   : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
       >
         <Sparkles className="w-4 h-4" />
-        <span className="font-medium">Surprise Me!</span>
+        <span className="font-medium">
+          {!isPremium && surpriseMeRemaining <= 0 ? 'Free Limit Reached' : `Surprise Me${!isPremium ? ` (${surpriseMeRemaining}/1)` : ''}`}
+        </span>
         
         {/* Tooltip explaining surprise me functionality */}
         <div className="fixed bottom-[calc(100%+10px)] left-1/2 transform -translate-x-1/2 w-64
@@ -171,9 +181,15 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
                      before:border-r-[6px] before:border-r-transparent before:border-t-[6px] before:border-t-popover">
           <div className="text-xs font-medium">Surprise Me</div>
           <div className="text-xs text-muted-foreground mt-1">
-            Automatically selects a random tone from your unlocked tones to rewrite your text.
-            A fun way to discover different writing styles!
+            {!isPremium && surpriseMeRemaining <= 0 
+              ? "You've reached your daily limit for the free tier. Come back tomorrow for another free use, or upgrade to premium for unlimited access!"
+              : "Automatically selects a random tone from your unlocked tones to rewrite your text. A fun way to discover different writing styles!"}
           </div>
+          {!isPremium && surpriseMeRemaining > 0 && (
+            <div className="text-xs mt-1.5 font-medium text-accent">
+              Free Tier: 1 use per day
+            </div>
+          )}
         </div>
       </button>
     </div>
