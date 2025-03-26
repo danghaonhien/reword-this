@@ -107,7 +107,7 @@ const ThemeSwitcher: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-[calc(100%+8px)] top-0 w-48 rounded-md shadow-lg bg-popover border border-border z-50">
+        <div className="absolute right-[calc(100%+2px)] top-0 w-48 rounded-md shadow-lg bg-popover border border-border z-50">
           <div className="py-1 px-2">
             <div className="text-xs font-medium text-muted-foreground mb-2 px-2 pt-2">
               Theme

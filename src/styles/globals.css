@@ -80,7 +80,7 @@
   
   /* Standard theme - default styles (from :root) */
   html.theme-standard {
-    /* Uses the default values, no need to redefine */
+    --background: 0 0% 100%;
   }
   
   /* Dark theme */
