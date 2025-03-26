@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: reword-this-frontend
+    env: static
+    buildCommand: npm install && npm run build:web
+    staticPublishPath: ./dist-web
+    envVars:
+      - key: NODE_VERSION
+        value: 18.19.0 

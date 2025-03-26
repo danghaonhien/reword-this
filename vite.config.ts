@@ -23,7 +23,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     headers: {
-      'Content-Security-Policy': "default-src 'self'; connect-src 'self' http://localhost:3000; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
+      'Content-Security-Policy': "default-src 'self'; connect-src 'self' http://localhost:3000 https://reword-this-backend.onrender.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
     },
   },
   build: {

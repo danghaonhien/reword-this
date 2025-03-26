@@ -7,8 +7,8 @@
     "dev": "vite",
     "dev:web": "vite --config vite.config.web.ts",
     "build": "tsc && vite build",
-    "build:web": "tsc && vite build --config vite.config.web.ts",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "build:web": "tsc --project tsconfig.web.json && vite build --config vite.config.web.ts --mode web",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {

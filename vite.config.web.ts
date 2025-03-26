@@ -8,9 +8,7 @@ const __dirname = dirname(__filename);
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -20,12 +18,15 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     headers: {
-      'Content-Security-Policy': "default-src 'self'; connect-src 'self' http://localhost:3000 https://*.vercel.app; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
+      'Content-Security-Policy': "default-src 'self'; connect-src 'self' https://reword-this-backend.onrender.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: 'dist-web',
     emptyOutDir: true,
     sourcemap: process.env.NODE_ENV === 'development',
+    rollupOptions: {
+      input: resolve(__dirname, 'index.html'),
+    },
   },
 }); 

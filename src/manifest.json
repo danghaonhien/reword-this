@@ -2,14 +2,14 @@
   "manifest_version": 3,
   "name": "Reword This",
   "version": "1.0.0",
-  "description": "AI-Powered Text Rewriting Chrome Extension",
+  "description": "AI-powered text rewriting tool",
   "permissions": [
     "activeTab",
-    "storage",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "host_permissions": [
-    "https://*.render.com/*"
+    "https://reword-this-backend.onrender.com/*"
   ],
   "action": {
     "default_popup": "index.html",
@@ -35,6 +35,6 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://reword-this-backend.onrender.com;"
   }
 } 

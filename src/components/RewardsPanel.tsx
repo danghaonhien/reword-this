@@ -5,7 +5,7 @@ import {
   Theme, 
   DailyMission 
 } from '@/hooks/gameificationTypes'
-import { Gift, Palette, Target, Check, Lock } from 'lucide-react'
+import { Gift, Palette, Target, Check, Lock, Trophy } from 'lucide-react'
 import { getNextUnlockableTone, getNextUnlockableTheme, calculateProgress } from '@/utils/gameificationUtils'
 
 type RewardTab = 'tones' | 'themes' | 'missions'
@@ -16,7 +16,7 @@ interface RewardsPanelProps {
 
 const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState<RewardTab>('tones')
-  const [showUnlockNotification, setShowUnlockNotification] = useState(false)
+  const [showNotification, setShowNotification] = useState(false)
   const [recentlyUnlocked, setRecentlyUnlocked] = useState<{
     tones: string[],
     themes: string[]
@@ -50,13 +50,13 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
       console.log('Reward unlocked event received:', details);
       
       // Show notification when a reward is unlocked
-      setShowUnlockNotification(true);
+      setShowNotification(true);
       setRecentlyUnlocked(details.unlockedDetails || { tones: [], themes: [] });
       
       // Hide notification after 3 seconds
       setTimeout(() => {
         if (isMounted.current) {
-          setShowUnlockNotification(false);
+          setShowNotification(false);
         }
       }, 3000);
     };
@@ -84,7 +84,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
   return (
     <div className="bg-card border border-border rounded-md shadow-sm relative">
       {/* Unlock Notification */}
-      {showUnlockNotification && (
+      {showNotification && (
         <div className="absolute top-0 left-0 right-0 bg-primary text-primary-foreground text-center py-2 px-3 text-sm font-medium z-10 animate-fadeInDown">
           🎉 {(() => {
             // Find what was recently unlocked
@@ -195,7 +195,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                   tone.unlocked
                     ? 'border-primary/30 bg-primary/5'
                     : 'border-border bg-muted/20'
-                } ${(tone.unlocked && showUnlockNotification) ? 'newly-unlocked' : ''}`}
+                } ${(tone.unlocked && showNotification) ? 'newly-unlocked' : ''}`}
               >
                 <div className="flex justify-between items-center">
                   <div className="font-medium text-sm flex items-center gap-1.5">
@@ -255,7 +255,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                   theme.unlocked
                     ? 'border-primary/30 bg-primary/5'
                     : 'border-border bg-muted/20'
-                } ${(theme.unlocked && showUnlockNotification) ? 'newly-unlocked' : ''}`}
+                } ${(theme.unlocked && showNotification) ? 'newly-unlocked' : ''}`}
               >
                 <div className="flex justify-between items-center">
                   <div className="font-medium text-sm flex items-center gap-1.5">
@@ -323,7 +323,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                   mission.completed
                     ? 'border-primary/30 bg-primary/5'
                     : 'border-border bg-muted/20'
-                } ${(mission.completed && showUnlockNotification) ? 'newly-unlocked' : ''}`}
+                } ${(mission.completed && showNotification) ? 'newly-unlocked' : ''}`}
               >
                 <div className="flex justify-between items-start">
                   <div>

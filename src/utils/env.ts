@@ -8,7 +8,7 @@
 export const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY as string
 
 // Environment variables configuration
-export const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:3000/api';
+export const API_ENDPOINT = 'https://reword-this-backend.onrender.com/api';
 export const APP_ENV = import.meta.env.VITE_APP_ENV || 'development';
 export const MAX_TOKENS = parseInt(import.meta.env.VITE_MAX_TOKENS || '1000');
 export const DEFAULT_MODEL = import.meta.env.VITE_DEFAULT_MODEL || 'gpt-3.5-turbo';
@@ -18,7 +18,7 @@ export const ENABLE_PREMIUM_FEATURES = import.meta.env.VITE_ENABLE_PREMIUM_FEATU
 export const ENABLE_DEBUG_MODE = import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true';
 
 // Helper functions
-export const isDev = () => APP_ENV === 'development';
+export const isDev = () => process.env.NODE_ENV === 'development';
 
 // Utility function to check if we're in production mode
 export const isProd = () => APP_ENV === 'production';
@@ -44,4 +44,7 @@ export const isValidApiKey = (key = OPENAI_API_KEY): boolean => {
   if (!key.startsWith('sk-')) return false;
   if (key.length < 30) return false;
   return true;
-} 
+}
+
+// Debug mode configuration
+export const DEBUG = isDev(); 
