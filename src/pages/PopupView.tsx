@@ -163,6 +163,11 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
 
   // Update the home screen 'Reword This' button to trigger the inline rewrite
   const handleRewordButtonClick = () => {
+    // Check if we have a valid text to rewrite
+    if (!textToRewrite.trim()) {
+      return;
+    }
+    
     // Trigger the rewrite with the current text and tone
     inlineRewrite(textToRewrite, selectedTone)
   }
@@ -224,6 +229,8 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
       }
     } catch (error) {
       console.error("Error during inline rewrite:", error)
+      // Display the error in the rewrite area
+      setRewrite(`Error: ${error instanceof Error ? error.message : 'Failed to rewrite text. Please try again.'}`);
     } finally {
       setIsRewriting(false)
     }

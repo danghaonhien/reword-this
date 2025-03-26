@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { CopyIcon, CheckIcon, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react'
 import { useGameification } from '../hooks/useGameification'
+import { getBattlePrompt } from '@/utils/promptUtils'
+import { callOpenAIForBattle } from '@/services/apiService'
 
 // Define available tone pairs for battling
 const TONE_PAIRS = [
@@ -63,12 +65,15 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
       const selectedTonePair = TONE_PAIRS[randomPairIndex]
       setTonePair(selectedTonePair)
       
-      // Mock API delay - in production this would call the AI API
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Get the battle prompt
+      const prompt = getBattlePrompt(originalText)
       
-      // Generate two different versions with the selected tones
-      setVersionA(`${selectedTonePair.a.name} version: ${originalText} rewritten to be more warm and approachable.`)
-      setVersionB(`${selectedTonePair.b.name} version: ${originalText} rewritten to be more compelling and convincing.`)
+      // Call the OpenAI API
+      const { versionA: responseA, versionB: responseB } = await callOpenAIForBattle(prompt)
+      
+      // Set the responses
+      setVersionA(`${selectedTonePair.a.name} version: ${responseA}`)
+      setVersionB(`${selectedTonePair.b.name} version: ${responseB}`)
       
       // Add XP just for generating a battle (encourages exploration)
       addXP(3)

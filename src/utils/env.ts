@@ -21,4 +21,18 @@ export const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT as string || 'http
 export const isDev = () => APP_ENV === 'development'
 
 // Utility function to check if we're in production mode
-export const isProd = () => APP_ENV === 'production' 
+export const isProd = () => APP_ENV === 'production'
+
+/**
+ * Validates that the OpenAI API key looks correctly formatted
+ * Basic validation checks:
+ * 1. Not empty
+ * 2. Starts with "sk-" (common for OpenAI keys)
+ * 3. Minimum length (OpenAI keys are generally long)
+ */
+export const isValidApiKey = (key = OPENAI_API_KEY): boolean => {
+  if (!key) return false;
+  if (!key.startsWith('sk-')) return false;
+  if (key.length < 30) return false;
+  return true;
+} 
