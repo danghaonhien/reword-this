@@ -71,54 +71,26 @@ const initialUnlockableTones: UnlockableTone[] = [
     unlocked: false
   },
   {
-    id: 'casual',
-    name: 'Casual',
-    description: 'Relaxed and conversational tone',
-    unlockRequirement: { type: 'xp', value: 150 },
-    unlocked: false
-  },
-  {
-    id: 'enthusiastic',
-    name: 'Enthusiastic',
-    description: 'Energetic and passionate expression',
+    id: 'persuasive',
+    name: 'Persuasive',
+    description: 'Compelling and convincing arguments',
     unlockRequirement: { type: 'xp', value: 200 },
     unlocked: false
   },
   {
-    id: 'diplomatic',
-    name: 'Diplomatic',
-    description: 'Tactful and balanced communication',
-    unlockRequirement: { type: 'streak', value: 3 },
+    id: 'executive',
+    name: 'Executive',
+    description: 'Authoritative and decisive communication',
+    unlockRequirement: { type: 'xp', value: 300 },
     unlocked: false
   },
   {
-    id: 'persuasive',
-    name: 'Persuasive',
-    description: 'Compelling and convincing arguments',
-    unlockRequirement: { type: 'xp', value: 300 },
-      unlocked: false
-    },
-    {
-    id: 'technical',
-    name: 'Technical',
-    description: 'Precise and specialized language',
-    unlockRequirement: { type: 'xp', value: 400 },
-      unlocked: false
-    },
-    {
     id: 'creative',
     name: 'Creative',
     description: 'Imaginative and expressive writing',
     unlockRequirement: { type: 'streak', value: 5 },
-      unlocked: false
-    },
-    {
-      id: 'executive',
-      name: 'Executive',
-    description: 'Authoritative and decisive communication',
-    unlockRequirement: { type: 'xp', value: 500 },
-      unlocked: false
-    }
+    unlocked: false
+  }
 ];
 
 const initialThemes: Theme[] = [
@@ -443,8 +415,25 @@ export function useGameification(): GameificationResult {
   }
 
   const trackBattle = (winner: string, loser: string) => {
+    console.log(`Tracking battle: ${winner} vs ${loser}`);
     addXP(10); // Add XP for battles
-    gameificationService.updateMissions('battle', 1); 
+    
+    // Explicitly call the updateMissions with 'battle' type
+    gameificationService.updateMissions('battle', 1);
+    
+    // You could also track usage for both tones to increase their badge progress
+    const wordCount = 10; // Nominal word count for tracking purposes
+    gameificationService.trackToneUsage(winner, wordCount);
+    gameificationService.trackToneUsage(loser, wordCount/2); // Less for the loser
+    
+    // Check if we need to update any battle-related missions
+    const missionUpdated = gameificationService.getState().dailyMissions.find(m => 
+      m.type === 'battle' && !m.completed && m.progress < m.goal
+    );
+    
+    if (missionUpdated) {
+      console.log(`Updated battle mission: ${missionUpdated.title}, progress: ${missionUpdated.progress}/${missionUpdated.goal}`);
+    }
   }
   
   const trackFeedback = () => {

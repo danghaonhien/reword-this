@@ -47,19 +47,16 @@ export const useRewrite = (): RewriteResult => {
           response = `We hereby state that ${text}`
           break
           
-        case 'surprise':
-          const surpriseTones = ['witty', 'poetic', 'snarky', 'minimalist']
-          const randomTone = surpriseTones[Math.floor(Math.random() * surpriseTones.length)]
+        case 'persuasive':
+          response = `You absolutely need to consider that ${text}. Don't you agree?`
+          break
           
-          if (randomTone === 'witty') {
-            response = `Well, isn't this interesting: ${text} (But what do I know?)`
-          } else if (randomTone === 'poetic') {
-            response = `In whispers of thought, we consider: ${text}`
-          } else if (randomTone === 'snarky') {
-            response = `Oh sure, like we're supposed to believe that ${text}`
-          } else if (randomTone === 'minimalist') {
-            response = text.split(' ').slice(0, text.split(' ').length / 2).join(' ') + '...'
-          }
+        case 'executive':
+          response = `Decision: ${text}. Action required immediately.`
+          break
+          
+        case 'creative':
+          response = `Imagine a world where ${text} becomes the new reality!`
           break
           
         default:
@@ -69,9 +66,9 @@ export const useRewrite = (): RewriteResult => {
       setRewrittenText(response)
       return response
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
       setError(errorMessage)
-      return ''
+      throw err
     } finally {
       setIsLoading(false)
     }

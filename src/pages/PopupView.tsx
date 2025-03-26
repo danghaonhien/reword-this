@@ -182,6 +182,23 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
     // Set loading state
     setIsRewriting(true)
     
+    // Handle surprise me by selecting a random unlocked tone
+    if (tone === 'surprise') {
+      const availableTones = gameification.unlockableTones
+        .filter(t => t.unlocked)
+        .map(t => t.id);
+      
+      // If no tones are unlocked, default to clarity
+      if (availableTones.length === 0) {
+        tone = 'clarity';
+      } else {
+        // Pick a random tone from the available ones
+        tone = availableTones[Math.floor(Math.random() * availableTones.length)];
+      }
+      
+      console.log(`Surprise Me selected the "${tone}" tone`);
+    }
+    
     // Use the useRewrite hook's rewrite function
     try {
       const result = await rewriteText(text, tone)

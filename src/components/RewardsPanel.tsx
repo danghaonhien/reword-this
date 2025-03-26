@@ -321,15 +321,15 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
                 key={mission.id}
                 className={`p-2 border rounded-md ${
                   mission.completed
-                    ? 'border-green-500/30 bg-green-500/5'
+                    ? 'border-primary/30 bg-primary/5'
                     : 'border-border bg-muted/20'
-                }`}
+                } ${(mission.completed && showUnlockNotification) ? 'newly-unlocked' : ''}`}
               >
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-medium text-sm flex items-center gap-1.5">
                       {mission.completed ? (
-                        <Check className="w-3.5 h-3.5 text-green-500" />
+                        <Check className="w-3.5 h-3.5 text-primary" />
                       ) : (
                         <Target className="w-3.5 h-3.5 text-primary" />
                       )}

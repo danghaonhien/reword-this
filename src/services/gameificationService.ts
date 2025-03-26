@@ -1,10 +1,19 @@
 import { 
   UnlockableTone, 
   Theme, 
-  ToneMasterBadge, 
-  DailyMission,
-  GameificationResult 
-} from '../hooks/gameificationTypes';
+  DailyMission 
+} from '../hooks/gameificationTypes'
+
+// Define ToneMasterBadge interface since it's not exported from gameificationTypes
+interface ToneMasterBadge {
+  id: string;
+  name: string;
+  description: string;
+  tone: string;
+  required: number; 
+  progress: number;
+  unlocked: boolean;
+}
 
 export interface GameificationState {
   xp: number;
@@ -389,12 +398,33 @@ export class GameificationService {
     console.log(`Updating mission type: ${type}, progress: ${progress}`);
     console.log(`Current missions:`, this.state.dailyMissions);
     
-    const mission = this.state.dailyMissions.find(m => m.type === type);
+    let mission = this.state.dailyMissions.find(m => m.type === type);
     console.log(`Found mission:`, mission);
 
-    if (mission && !mission.completed) {
+    // If no mission found for this type, create one (especially for battle missions)
+    if (!mission) {
+      console.warn(`Mission not found for type: ${type}, creating a new one`);
+      
+      // Create a new mission for this type
+      const newMission: DailyMission = {
+        id: `${type}_mission_${Date.now()}`,
+        title: type === 'battle' ? 'Battle Rewrite' : type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' '),
+        description: type === 'battle' ? 'Complete a battle rewrite and choose your favorite version' : `Complete the ${type} mission`,
+        type: type as any,
+        goal: type === 'battle' ? 3 : 1, // Battles typically require multiple completions
+        progress: 0,
+        completed: false,
+        reward: { type: 'xp', value: type === 'battle' ? 30 : 20 } // Battles give more XP
+      };
+      
+      this.state.dailyMissions.push(newMission);
+      mission = newMission;
+      console.log(`Created new mission:`, mission);
+    }
+
+    if (!mission.completed) {
       const oldProgress = mission.progress;
-      mission.progress = Math.min(mission.progress + 1, mission.goal);
+      mission.progress = Math.min(mission.progress + progress, mission.goal);
       console.log(`Updated mission progress: ${oldProgress} -> ${mission.progress}/${mission.goal}`);
       
       if (mission.progress >= mission.goal) {
@@ -405,11 +435,16 @@ export class GameificationService {
           console.log(`Rewarding XP: ${mission.reward.value}`);
           this.addXP(mission.reward.value);
         }
+        
+        // Dispatch a special event for battle mission completion
+        if (type === 'battle') {
+          window.dispatchEvent(new CustomEvent('battle_mission_completed', { 
+            detail: { mission }
+          }));
+        }
       }
       this.dispatchEvent('mission_update', mission);
       this.saveState();
-    } else if (!mission) {
-      console.warn(`Mission not found for type: ${type}`);
     } else if (mission.completed) {
       console.log(`Mission ${mission.id} already completed, skipping update`);
     }

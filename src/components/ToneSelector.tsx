@@ -66,16 +66,29 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
           <button
             key={tone.id}
             onClick={() => onChange(tone.id)}
-            className={`py-2 px-3 text-sm rounded-md border transition-colors relative
+            className={`py-2 px-3 text-sm rounded-md border transition-colors relative group 
                       ${selectedTone === tone.id 
                         ? 'bg-primary text-primary-foreground border-primary/30'
-                        : 'bg-card text-card-foreground border-border hover:bg-secondary/20'}
+                        : 'bg-card text-card-foreground border-border hover:bg-secondary/20 hover:text-left'}
                       ${recentlyUnlocked.includes(tone.id) ? 'ring-2 ring-accent animate-pulse' : ''}`}
           >
             {tone.label}
             {recentlyUnlocked.includes(tone.id) && (
               <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[10px] px-1 rounded-full">New!</span>
             )}
+            
+            {/* Tooltip showing tone description */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48
+                         bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
+                         opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-10">
+              <div className="text-xs font-medium">{tone.label}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {unlockableTones.find(t => t.id === tone.id)?.description || ''}
+              </div>
+              {tone.id === 'clarity' && (
+                <div className="text-xs mt-1 font-medium text-primary">Available from start</div>
+              )}
+            </div>
           </button>
         ))}
         
@@ -135,10 +148,21 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
         onClick={onSurpriseMe}
         className="w-full flex items-center justify-center gap-2 py-2.5 px-3 
                  bg-accent text-accent-foreground rounded-md hover:bg-accent/90
-                 transition-colors shadow-sm"
+                 transition-colors shadow-sm group relative"
       >
         <Sparkles className="w-4 h-4" />
         <span className="font-medium">Surprise Me!</span>
+        
+        {/* Tooltip explaining surprise me functionality */}
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64
+                     bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
+                     opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-10">
+          <div className="text-xs font-medium">Surprise Me</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Automatically selects a random tone from your unlocked tones to rewrite your text.
+            A fun way to discover different writing styles!
+          </div>
+        </div>
       </button>
     </div>
   )

@@ -21,8 +21,20 @@ Text:
 Text:
 "${text}"`;
     
-    case 'surprise':
-      return `Reword the following text in a creative and engaging tone, chosen at random from this list: [witty, poetic, snarky, minimalist, dramatic, Gen Z, persuasive, humorous]. Maintain the meaning.
+    case 'persuasive':
+      return `Reword the following text in a persuasive tone that convinces the reader. Use compelling language, rhetorical questions, and persuasive techniques.
+
+Text:
+"${text}"`;
+    
+    case 'executive':
+      return `Reword the following text in an authoritative, decisive tone suitable for executive communications. Be direct, confident, and action-oriented.
+
+Text:
+"${text}"`;
+    
+    case 'creative':
+      return `Reword the following text in a creative, imaginative tone. Use expressive language, metaphors, and vivid imagery where appropriate.
 
 Text:
 "${text}"`;
