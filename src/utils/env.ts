@@ -6,22 +6,22 @@
 
 // API Keys
 export const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY as string
-export const APP_ENV = import.meta.env.VITE_APP_ENV as 'development' | 'production' | 'test' || 'development'
+
+// Environment variables configuration
+export const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:3000/api';
+export const APP_ENV = import.meta.env.VITE_APP_ENV || 'development';
+export const MAX_TOKENS = parseInt(import.meta.env.VITE_MAX_TOKENS || '1000');
+export const DEFAULT_MODEL = import.meta.env.VITE_DEFAULT_MODEL || 'gpt-3.5-turbo';
 
 // Feature flags
-export const ENABLE_PREMIUM_FEATURES = import.meta.env.VITE_ENABLE_PREMIUM_FEATURES === 'true'
-export const ENABLE_DEBUG_MODE = import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true'
+export const ENABLE_PREMIUM_FEATURES = import.meta.env.VITE_ENABLE_PREMIUM_FEATURES === 'true';
+export const ENABLE_DEBUG_MODE = import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true';
 
-// App configuration
-export const MAX_TOKENS = Number(import.meta.env.VITE_MAX_TOKENS || 1000)
-export const DEFAULT_MODEL = import.meta.env.VITE_DEFAULT_MODEL as string || 'gpt-3.5-turbo'
-export const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT as string || 'https://api.example.com'
-
-// Utility function to check if we're in development mode
-export const isDev = () => APP_ENV === 'development'
+// Helper functions
+export const isDev = () => APP_ENV === 'development';
 
 // Utility function to check if we're in production mode
-export const isProd = () => APP_ENV === 'production'
+export const isProd = () => APP_ENV === 'production';
 
 /**
  * Check if user has premium access

@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: reword-this-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DEFAULT_MODEL
+        value: gpt-3.5-turbo
+      - key: MAX_TOKENS
+        value: "1000"
+      - key: ALLOWED_ORIGINS
+        value: "chrome-extension://*,http://localhost:5173,http://localhost:3000"
+      - key: PORT
+        value: "10000"
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: "*"
+      - path: /*
+        name: Access-Control-Allow-Methods
+        value: "GET, POST, OPTIONS"
+      - path: /*
+        name: Access-Control-Allow-Headers
+        value: "Content-Type, Authorization, X-Requested-With" 

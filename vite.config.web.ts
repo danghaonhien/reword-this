@@ -1,9 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { crx } from '@crxjs/vite-plugin';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
-import manifest from './src/manifest.json';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,7 +10,6 @@ const __dirname = dirname(__filename);
 export default defineConfig({
   plugins: [
     react(),
-    crx({ manifest }),
   ],
   resolve: {
     alias: {
@@ -23,7 +20,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     headers: {
-      'Content-Security-Policy': "default-src 'self'; connect-src 'self' http://localhost:3000; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
+      'Content-Security-Policy': "default-src 'self'; connect-src 'self' http://localhost:3000 https://*.vercel.app; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
     },
   },
   build: {

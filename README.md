@@ -9,6 +9,7 @@ A Chrome extension that helps users improve their writing with AI-powered text r
 - **Custom Tone Builder**: Create rewrites by providing a reference sample text in your desired tone or style
 - **Gamification**: Earn XP and build streaks as you use the extension to improve your writing
 - **Context Menu Integration**: Right-click on any selected text on the web to open the extension
+- **Secure Backend**: Uses a dedicated backend server to securely handle API requests without exposing your API key
 
 ## Installation
 
@@ -19,11 +20,18 @@ A Chrome extension that helps users improve their writing with AI-powered text r
    ```
    npm install
    ```
-3. Run the development server:
+3. Set up the backend server (required for API calls):
+   ```
+   cd backend
+   npm install
+   # Configure your .env file with your API key
+   npm run dev
+   ```
+4. In a new terminal, run the extension development server:
    ```
    npm run dev
    ```
-4. Load the extension in Chrome:
+5. Load the extension in Chrome:
    - Open Chrome and navigate to `chrome://extensions/`
    - Enable "Developer mode" in the top right
    - Click "Load unpacked"
@@ -31,12 +39,27 @@ A Chrome extension that helps users improve their writing with AI-powered text r
 
 ### Production Build
 
-1. Build the extension:
+1. Deploy the backend server (see `backend/DEPLOYMENT.md` for instructions)
+2. Update your extension's `.env` file with your production backend URL
+3. Build the extension:
    ```
    npm run build
    ```
-2. The built extension will be in the `dist` folder
-3. Load it in Chrome as described above
+4. The built extension will be in the `dist` folder
+5. Load it in Chrome as described above or package it for the Chrome Web Store
+
+## Backend Server
+
+The project includes a secure backend server that handles API requests to OpenAI, keeping your API key secure and away from client-side code. Key features:
+
+- Secure API key storage using environment variables
+- CORS protection to ensure only your Chrome extension can access the API
+- Simplified API endpoints for text rewriting and rewrite battles
+- Easy deployment to various hosting platforms
+
+For backend setup and deployment instructions, see:
+- `backend/README.md` for local setup
+- `backend/DEPLOYMENT.md` for deployment options
 
 ## Usage
 
@@ -49,21 +72,22 @@ A Chrome extension that helps users improve their writing with AI-powered text r
 
 ## Tech Stack
 
-- React
-- TypeScript
-- Vite
-- TailwindCSS
-- CRXJS
+- **Frontend**: React, TypeScript, Vite, TailwindCSS, CRXJS
+- **Backend**: Node.js, Express, OpenAI API
 
 ## Project Structure
 
-- `src/`: Source code
+- `src/`: Extension source code
   - `components/`: UI components
   - `hooks/`: Custom React hooks
   - `pages/`: Top-level page components
   - `background.ts`: Chrome extension background script
   - `content.ts`: Chrome extension content script
   - `manifest.json`: Chrome extension manifest
+- `backend/`: Backend server code
+  - `server.js`: Main server file
+  - `README.md`: Backend setup instructions
+  - `DEPLOYMENT.md`: Deployment guide
 
 ## Development
 

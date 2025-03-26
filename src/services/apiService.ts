@@ -1,45 +1,63 @@
-import { OPENAI_API_KEY, API_ENDPOINT, DEFAULT_MODEL, MAX_TOKENS, isDev, isValidApiKey } from '@/utils/env';
+import { API_ENDPOINT, isDev } from '@/utils/env';
+
+interface APIError extends Error {
+  name: string;
+  message: string;
+}
 
 /**
- * Service for making secure API calls to OpenAI
+ * Service for making secure API calls via our backend server
  */
 export const callOpenAI = async (prompt: string): Promise<string> => {
   try {
-    // Validate API key
-    if (!isValidApiKey()) {
-      throw new Error('OpenAI API key is not set or is invalid. Please check your API key in the settings.');
-    }
-
-    // Log the request in development for debugging
+    // Ensure the API endpoint is properly formatted
+    const endpoint = API_ENDPOINT.endsWith('/') ? API_ENDPOINT.slice(0, -1) : API_ENDPOINT;
+    const url = `${endpoint}/rewrite`;
+    
     if (isDev()) {
-      console.log('Making API request with prompt (first 50 chars):', prompt.substring(0, 50) + '...');
+      console.log(`Calling API at ${url}`);
     }
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
       },
-      body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: MAX_TOKENS,
-        temperature: 0.7,
-      })
+      body: JSON.stringify({ prompt }),
+      // Add timeout
+      signal: AbortSignal.timeout(30000) // 30 seconds timeout
     });
 
+    // Log response status for debugging
+    if (isDev()) {
+      console.log(`API response status: ${response.status}`);
+    }
+
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error response:', errorData);
-      throw new Error(errorData.error?.message || `API request failed with status ${response.status}`);
+      let errorMessage;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error?.message || errorData.error || `API request failed with status ${response.status}`;
+      } catch (e) {
+        errorMessage = `API request failed with status ${response.status}`;
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || '';
-  } catch (error) {
+    return data.response || '';
+  } catch (error: unknown) {
     console.error('OpenAI API error:', error);
-    throw new Error(error instanceof Error ? error.message : 'Error calling OpenAI API');
+    
+    // More specific error handling
+    const apiError = error as APIError;
+    if (apiError.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again.');
+    } else if (apiError.message.includes('Failed to fetch')) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    throw new Error(apiError.message || 'Error calling API');
   }
 };
 
@@ -62,8 +80,9 @@ export const callOpenAIForBattle = async (prompt: string): Promise<{versionA: st
       versionA: versionAMatch?.[1]?.trim() || 'Failed to generate Version A. Please try again.',
       versionB: versionBMatch?.[1]?.trim() || 'Failed to generate Version B. Please try again.'
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Battle rewrites API error:', error);
-    throw new Error(error instanceof Error ? error.message : 'Error generating battle rewrites');
+    const apiError = error as APIError;
+    throw new Error(apiError.message || 'Error generating battle rewrites');
   }
 }; 

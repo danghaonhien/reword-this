@@ -1,36 +1,27 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
 import OpenAI from 'openai';
-
-// Load environment variables
-dotenv.config();
-
-const app = express();
-const port = process.env.PORT || 3000;
 
 // Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Configure CORS
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
+export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-// Parse JSON bodies
-app.use(express.json());
+  // Handle OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-// Rewrite endpoint
-app.post('/api/rewrite', async (req, res) => {
   try {
     const { prompt } = req.body;
     
@@ -47,7 +38,7 @@ app.post('/api/rewrite', async (req, res) => {
     
     const response = completion.choices[0]?.message?.content || '';
     
-    return res.json({ response });
+    return res.status(200).json({ response });
   } catch (error) {
     console.error('API error:', error);
     return res.status(500).json({ 
@@ -55,9 +46,4 @@ app.post('/api/rewrite', async (req, res) => {
       details: error.message
     });
   }
-});
-
-// Start server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-}); 
+} 
