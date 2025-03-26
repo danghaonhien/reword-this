@@ -711,6 +711,15 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
           </div>
         </div>
         
+        {/* App name vertically centered */}
+        <div className="flex flex-col items-center my-auto">
+          <div className="vertical-text text-primary font-medium tracking-widest text-sm">
+            <div className="rotate-180" style={{ writingMode: 'vertical-rl' }}>
+              Reword This
+            </div>
+          </div>
+        </div>
+        
         {/* Bottom controls - remove ThemeSwitcher from here */}
         <div className="flex flex-col items-center gap-3 mt-auto">
           <div className="relative group">
