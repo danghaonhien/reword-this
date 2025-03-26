@@ -173,7 +173,7 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
         </span>
         
         {/* Tooltip explaining surprise me functionality */}
-        <div className="fixed bottom-[calc(100%+10px)] left-1/2 transform -translate-x-1/2 w-64
+        <div className="absolute bottom-[calc(100%+10px)] left-1/2 transform -translate-x-1/2 w-64
                      bg-popover text-popover-foreground text-xs p-2 rounded shadow-md
                      opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-left z-[100]
                      before:content-[''] before:absolute before:bottom-[-4px] before:left-1/2 before:transform before:-translate-x-1/2
@@ -182,8 +182,8 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
           <div className="text-xs font-medium">Surprise Me</div>
           <div className="text-xs text-muted-foreground mt-1">
             {!isPremium && surpriseMeRemaining <= 0 
-              ? "You've reached your daily limit for the free tier. Come back tomorrow for another free use, or upgrade to premium for unlimited access!"
-              : "Automatically selects a random tone from your unlocked tones to rewrite your text. A fun way to discover different writing styles!"}
+              ? "You've reached your daily Surprise Me limit for the free tier. Come back tomorrow for another free use, or upgrade to premium for unlimited access!"
+              : "Let AI choose a random tone from your unlocked tones to rewrite your text. A fun way to discover different writing styles!"}
           </div>
           {!isPremium && surpriseMeRemaining > 0 && (
             <div className="text-xs mt-1.5 font-medium text-accent">
