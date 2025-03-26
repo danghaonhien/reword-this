@@ -69,7 +69,7 @@ const ToneSelector: React.FC<ToneSelectorProps> = ({
             className={`py-2 px-3 text-sm rounded-md border transition-colors relative group 
                       ${selectedTone === tone.id 
                         ? 'bg-primary text-primary-foreground border-primary/30'
-                        : 'bg-card text-card-foreground border-border hover:bg-secondary/20 hover:text-left'}
+                        : 'bg-card text-card-foreground border-border hover:bg-secondary/20 '}
                       ${recentlyUnlocked.includes(tone.id) ? 'ring-2 ring-accent animate-pulse' : ''}`}
           >
             {tone.label}

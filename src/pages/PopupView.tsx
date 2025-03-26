@@ -12,7 +12,9 @@ import {
   Palette,
   Info,
   Trash2,
-  ChevronDown
+  ChevronDown,
+  Copy,
+  Check
 } from 'lucide-react'
 import ToneSelector from '../components/ToneSelector'
 import RewordHistory from '../components/RewordHistory'
@@ -77,6 +79,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
   const gameification = useGameification()
   const { addXP, xp, level, streak } = gameification
   const { rewrite: rewriteText } = useRewrite()
+  const [copiedInline, setCopiedInline] = useState(false)
   
   // Close the popup window (extension only)
   const closeApp = () => {
@@ -269,6 +272,16 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
 
   const displayHistoryItems = getDisplayHistoryItems();
   const hasMoreHistoryItems = !showAllHistory && historyItems.length > 4;
+
+  // Handle inline copy
+  const handleInlineCopy = () => {
+    navigator.clipboard.writeText(rewrite)
+      .then(() => {
+        setCopiedInline(true);
+        setTimeout(() => setCopiedInline(false), 2000);
+      })
+      .catch(err => console.error('Failed to copy text:', err));
+  };
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -543,31 +556,21 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                               Edit
                             </button>
                             <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(rewrite)
-                                  .catch(err => console.error('Failed to copy text:', err))
-                              }}
+                              onClick={handleInlineCopy}
                               className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
                               title="Copy to clipboard"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                              </svg>
-                              Copy
-                            </button>
-                            <button
-                              onClick={rewriteAgain}
-                              className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
-                              title="Regenerate"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                                <path d="M3 3v5h5" />
-                                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                                <path d="M16 21h5v-5" />
-                              </svg>
-                              Regenerate
+                              {copiedInline ? (
+                                <>
+                                  <Check className="w-3 h-3" />
+                                  Copied!
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  Copy
+                                </>
+                              )}
                             </button>
                           </div>
                         </div>
@@ -822,24 +825,17 @@ const RewordResult: React.FC<{
             className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
             title="Copy to clipboard"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-            </svg>
-            {copied ? 'Copied!' : 'Copy'}
-          </button>
-          <button
-            onClick={onRewriteAgain}
-            className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
-            title="Regenerate"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-              <path d="M3 3v5h5" />
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-              <path d="M16 21h5v-5" />
-            </svg>
-            Regenerate
+            {copied ? (
+              <>
+                <Check className="w-3 h-3" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="w-3 h-3" />
+                Copy
+              </>
+            )}
           </button>
         </div>
       </div>
