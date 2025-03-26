@@ -24,6 +24,7 @@ app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true
 }));
 
 // Add CSP headers
@@ -48,7 +49,11 @@ app.use(express.static(path.join(__dirname, '../dist')));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ 
+    status: 'ok',
+    message: 'API server is running',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Rewrite endpoint
@@ -79,9 +84,30 @@ app.post('/api/rewrite', async (req, res) => {
   }
 });
 
-// Handle all other routes - serve index.html for client-side routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+// Serve a simple HTML page for the root route
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Reword This API</title>
+      <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; }
+      </style>
+    </head>
+    <body>
+      <h1>Reword This API</h1>
+      <p>This is the API server for the Reword This application.</p>
+      <h2>Available Endpoints:</h2>
+      <ul>
+        <li><code>GET /api/health</code> - Health check endpoint</li>
+        <li><code>POST /api/rewrite</code> - Text rewriting endpoint</li>
+      </ul>
+      <p>Server Time: ${new Date().toISOString()}</p>
+    </body>
+    </html>
+  `);
 });
 
 // Start server

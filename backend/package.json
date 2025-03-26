@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "cd .. && npm install && npm run build:web && cp -r dist backend/"
+    "build": "mkdir -p dist && echo '<!DOCTYPE html><html><body><h1>API Server</h1></body></html>' > dist/index.html"
   },
   "dependencies": {
     "cors": "^2.8.5",
