@@ -24,6 +24,7 @@ export const callOpenAI = async (prompt: string, retries = 2): Promise<string> =
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Origin': window.location.origin,
       },
       body: JSON.stringify({ prompt }),
       // Add timeout

@@ -1,19 +1,34 @@
 const express = require('express');
 const cors = require('cors');
-const { Configuration, OpenAIApi } = require('openai');
+const { OpenAI } = require('openai');
 require('dotenv').config();
 
 const app = express();
 
-// CORS configuration
+// CORS pre-flight configuration
+app.use((req, res, next) => {
+  // Log the origin for debugging
+  console.log('Request origin:', req.headers.origin);
+  
+  // Set CORS headers
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', true);
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
+// Regular CORS middleware
 app.use(cors({
-  origin: [
-    'https://reword-this-frontend.onrender.com',
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ],
+  origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
   credentials: true
 }));
 
@@ -21,14 +36,13 @@ app.use(cors({
 app.use(express.json());
 
 // OpenAI configuration
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', environment: process.env.NODE_ENV });
 });
 
 // Rewrite endpoint
@@ -40,7 +54,9 @@ app.post('/api/rewrite', async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const completion = await openai.createChatCompletion({
+    console.log('Processing rewrite request with prompt:', prompt.substring(0, 50) + '...');
+
+    const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
       messages: [
         {
@@ -56,7 +72,8 @@ app.post('/api/rewrite', async (req, res) => {
       temperature: 0.7,
     });
 
-    const response = completion.data.choices[0].message.content;
+    const response = completion.choices[0].message.content;
+    console.log('Successfully processed rewrite request');
     res.json({ response });
   } catch (error) {
     console.error('Error in /api/rewrite:', error);
@@ -69,7 +86,7 @@ app.post('/api/rewrite', async (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Global error handler:', err.stack);
   res.status(500).json({
     error: 'Something broke!',
     details: process.env.NODE_ENV === 'development' ? err.message : undefined
@@ -79,5 +96,5 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
 }); 
