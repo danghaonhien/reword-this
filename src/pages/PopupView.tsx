@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { 
   Moon, 
   Sun, 
+  Gift,
   Sparkles, 
   RotateCcw, 
   X,
@@ -14,8 +15,7 @@ import {
   Trash2,
   ChevronDown,
   Copy,
-  Check,
-  Gift
+  Check
 } from 'lucide-react'
 import ToneSelector from '../components/ToneSelector'
 import RewordHistory from '../components/RewordHistory'
@@ -80,8 +80,8 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
   const gameification = useGameification()
   const { addXP, xp, level, streak } = gameification
   const { rewrite: rewriteText } = useRewrite()
-  const [copiedInline, setCopiedInline] = useState(false)
   const [copiedHistoryId, setCopiedHistoryId] = useState<string | null>(null)
+  const [copiedInline, setCopiedInline] = useState(false)
   
   // Close the popup window (extension only)
   const closeApp = () => {
@@ -275,25 +275,25 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
   const displayHistoryItems = getDisplayHistoryItems();
   const hasMoreHistoryItems = !showAllHistory && historyItems.length > 4;
 
+  // Handle copy to clipboard for history items
+  const handleHistoryCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopiedHistoryId(id)
+        setTimeout(() => setCopiedHistoryId(null), 2000)
+      })
+      .catch(err => console.error('Failed to copy text:', err))
+  }
+
   // Handle inline copy
   const handleInlineCopy = () => {
     navigator.clipboard.writeText(rewrite)
       .then(() => {
-        setCopiedInline(true);
-        setTimeout(() => setCopiedInline(false), 2000);
+        setCopiedInline(true)
+        setTimeout(() => setCopiedInline(false), 2000)
       })
-      .catch(err => console.error('Failed to copy text:', err));
-  };
-
-  // Handle history item copy
-  const handleHistoryCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        setCopiedHistoryId(id);
-        setTimeout(() => setCopiedHistoryId(null), 2000);
-      })
-      .catch(err => console.error('Failed to copy text:', err));
-  };
+      .catch(err => console.error('Failed to copy text:', err))
+  }
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -303,7 +303,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
         <RewardNotification />
         
         {/* Main content - conditionally render based on current view */}
-        <div className="flex-1 overflow-hidden flex flex-col h-screen max-h-screen">
+        <div className="flex-1 overflow-hidden flex flex-col">
           {currentView === 'rewards' ? (
             <div className="h-full min-h-0 overflow-auto custom-scrollbar p-4">
               <button
@@ -543,7 +543,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                   </div>
 
                   {/* Content Container - flex-grow to push controls to bottom */}
-                  <div className="flex-grow overflow-y-auto custom-scrollbar pb-32">
+                  <div className="flex-grow overflow-y-auto custom-scrollbar  pb-32">
                     {/* Rewrite Result (when available) */}
                     {isRewriting ? (
                       <div className="mb-4 bg-card border border-border rounded-md p-4">
@@ -559,7 +559,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                             <h3 className="text-sm font-medium">Rewritten with <span className="capitalize">{selectedTone}</span> tone</h3>
                           </div>
                           
-                          <div className="max-h-[240px] overflow-y-auto custom-scrollbar">
+                          <div className="max-h-[240px] overflow-y-auto ">
                             <p className="text-sm whitespace-pre-wrap">{rewrite}</p>
                           </div>
                           
@@ -649,7 +649,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                   </div>
                 </div>
               ) : currentView === 'battle' ? (
-                <div className="flex flex-col h-full overflow-hidden">
+                <div className="flex flex-col h-full">
                   <button
                     onClick={resetView}
                     className="inline-flex items-center text-sm text-muted-foreground mb-4 hover:text-foreground"
@@ -657,7 +657,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
                     ← Back to Home
                   </button>
                   
-                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1" style={{ height: 'calc(100vh - 140px)' }}>
+                  <div className="flex-grow overflow-y-auto custom-scrollbar pr-1">
                     <RewriteBattle 
                       originalText={textToRewrite}
                       onRewriteAgain={rewriteAgain}
@@ -729,7 +729,7 @@ const PopupView: React.FC<PopupViewProps> = ({ selectedText = '' }) => {
           <div className="relative group">
             <button
               onClick={closeApp}
-              className="p-2 rounded-full hover:bg-destructive/20 text-destructive"
+              className="p-2 rounded-full hover:bg-primary/20 text-primary"
               // title="Close"
             >
               <X className="w-4 h-4" />
@@ -848,17 +848,11 @@ const RewordResult: React.FC<{
             className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
             title="Copy to clipboard"
           >
-            {copied ? (
-              <>
-                <Check className="w-3 h-3" />
-                Copied!
-              </>
-            ) : (
-              <>
-                <Copy className="w-3 h-3" />
-                Copy
-              </>
-            )}
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+            </svg>
+            {copied ? 'Copied!' : 'Copy'}
           </button>
         </div>
       </div>
@@ -882,16 +876,44 @@ interface TextInputProps {
 const TextInput: React.FC<TextInputProps> = ({ text, onTextChange }) => {
   return (
     <div className="mb-0">
-      <div className="border border-border rounded-md bg-card overflow-hidden">
+      <div className="border border-border rounded-md bg-card overflow-hidden text-s">
         <textarea
           value={text}
           onChange={(e) => onTextChange(e.target.value)}
           placeholder="Enter text to rewrite..."
-          className="w-full h-[250px] p-3 bg-transparent resize-none focus:outline-none"
+          className="w-full h-[340px] p-3 bg-transparent resize-none focus:outline-none"
         />
       </div>
     </div>
   )
 }
+
+// CopyButton component for reusable copy functionality
+const CopyButton: React.FC<{ text: string }> = ({ text }) => {
+  const [copied, setCopied] = useState(false);
+  
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(err => console.error('Failed to copy text:', err));
+  };
+  
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1 text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground"
+      title="Copy to clipboard"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+      </svg>
+      {copied ? 'Copied!' : 'Copy'}
+    </button>
+  );
+};
 
 export default PopupView 

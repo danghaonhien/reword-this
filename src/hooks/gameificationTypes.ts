@@ -23,12 +23,23 @@ export interface Theme {
   className: string
 }
 
+// Define interface for tone master badges
+export interface ToneMasterBadge {
+  id: string
+  tone: string
+  name: string
+  description: string
+  progress: number
+  required: number
+  unlocked: boolean
+}
+
 // Define interface for daily missions
 export interface DailyMission {
   id: string
   title: string
   description: string
-  type: 'use_tones' | 'rewrite_words' | 'rewrite_count' | 'battle' | 'feedback' | 'checkin'
+  type: 'use_tones' | 'rewrite_words' | 'rewrite_count' | 'battle' | 'custom_tone' | 'feedback' | 'checkin'
   goal: number
   progress: number
   completed: boolean
@@ -49,12 +60,16 @@ export interface GameificationResult {
   checkAndUpdateStreak: () => void
   trackToneUsage: (tone: string, wordCount: number) => void
   trackBattle: (winner: string, loser: string) => void
+  trackCustomTone: () => void
   trackFeedback: () => void
   trackWordWizard: (wordCount: number) => void
   
   // Feature-specific data and functions
   unlockableTones: UnlockableTone[]
   themes: Theme[]
+  toneMasterBadges: ToneMasterBadge[]
+  activeBadge: string | null
+  setActiveBadge: (badgeId: string | null) => void
   dailyMissions: DailyMission[]
   tonesUsedToday: Record<string, number>
   activeTheme: Theme | null

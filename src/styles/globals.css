@@ -5,7 +5,7 @@
 @layer base {
   /* Make theme class declarations have higher specificity by prefixing with html */
   html:where(:root) {
-    --background: 0 0% 100%;
+    --background: 0 0% 93%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -145,11 +145,6 @@
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 221.2 83.2% 53.3%;
-    
-    /* Focus theme scrollbar - softer, less distracting */
-    --scrollbar-thumb: 220 10% 85%;
-    --scrollbar-track: 0 0% 98%;
-    --scrollbar-hover: 220 10% 75%;
   }
   
   /* Nature theme */
@@ -178,11 +173,6 @@
     --border: 120 15% 85%;
     --input: 120 15% 85%;
     --ring: 150 60% 40%;
-    
-    /* Nature theme scrollbar - green tinted */
-    --scrollbar-thumb: 150 30% 60%;
-    --scrollbar-track: 120 10% 90%;
-    --scrollbar-hover: 150 40% 50%;
   }
   
   /* Vibrant theme */
@@ -211,11 +201,6 @@
     --border: 280 40% 85%;
     --input: 280 40% 85%;
     --ring: 280 70% 50%;
-    
-    /* Vibrant theme scrollbar - purple tinted */
-    --scrollbar-thumb: 280 60% 65%;
-    --scrollbar-track: 280 30% 92%;
-    --scrollbar-hover: 280 70% 55%;
   }
   
   /* Professional theme */
@@ -244,11 +229,6 @@
     --border: 215 30% 85%;
     --input: 215 30% 85%;
     --ring: 215 70% 40%;
-    
-    /* Professional theme scrollbar - blue tinted */
-    --scrollbar-thumb: 215 50% 50%;
-    --scrollbar-track: 215 20% 90%;
-    --scrollbar-hover: 215 60% 40%;
   }
   
   /* Writer's Delight (Premium) theme */
@@ -277,11 +257,6 @@
     --border: 35 30% 85%;
     --input: 35 30% 85%;
     --ring: 35 80% 40%;
-    
-    /* Writer's Delight scrollbar - warm sepia tinted */
-    --scrollbar-thumb: 35 60% 65%;
-    --scrollbar-track: 35 20% 90%;
-    --scrollbar-hover: 35 70% 55%;
   }
   
   /* Custom Accent (Premium) theme - base with primary accents customizable */
@@ -373,31 +348,4 @@
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Custom animations */
-@keyframes fade-in-down {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-down {
-  animation: fade-in-down 0.3s ease-out forwards;
-}
-
-@keyframes fade-out-up {
-  0% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
 } 

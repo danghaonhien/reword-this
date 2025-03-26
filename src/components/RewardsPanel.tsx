@@ -182,7 +182,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="p-3 max-h-[250px] overflow-y-auto custom-scrollbar">
+      <div className="p-3 max-h-[480px] overflow-y-auto custom-scrollbar">
         {activeTab === 'tones' && (
           <div className="space-y-3">
             <div className="text-xs text-muted-foreground mb-2">
@@ -363,7 +363,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
           </div>
         )}
       </div>
-
+{/* 
       {onBack && (
         <div className="p-3 border-t border-border">
           <button
@@ -373,7 +373,7 @@ const RewardsPanel: React.FC<RewardsPanelProps> = ({ onBack }) => {
             Return to Rewrite
           </button>
         </div>
-      )}
+      )} */}
     </div>
   )
 }

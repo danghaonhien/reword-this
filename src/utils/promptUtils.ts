@@ -21,23 +21,29 @@ Text:
 Text:
 "${text}"`;
     
-    case 'persuasive':
-      return `Reword the following text in a persuasive tone that convinces the reader. Use compelling language, rhetorical questions, and persuasive techniques.
+    case 'gen_z':
+      return `Reword the following text to sound like Gen Z language. Use modern internet slang, casual tone, abbreviations, and appropriate emojis. Make it sound authentic but still understandable.
 
 Text:
 "${text}"`;
     
     case 'executive':
-      return `Reword the following text in an authoritative, decisive tone suitable for executive communications. Be direct, confident, and action-oriented.
+      return `Reword the following text for executive-level communication. Be direct, authoritative, and focus on key points. Use decisive language.
 
 Text:
 "${text}"`;
     
     case 'creative':
-      return `Reword the following text in a creative, imaginative tone. Use expressive language, metaphors, and vivid imagery where appropriate.
+      return `Reword the following text to be creative and imaginative. Use expressive language, metaphors, or unique perspectives to make it engaging.
 
 Text:
 "${text}"`;
+    
+    case 'surprise':
+      // For surprise, randomly select one of our 6 available tones
+      const availableTones = ['clarity', 'friendly', 'formal', 'gen_z', 'executive', 'creative'];
+      const randomTone = availableTones[Math.floor(Math.random() * availableTones.length)];
+      return getPromptForTone(randomTone, text);
     
     default:
       // Generic prompt for any other tone
@@ -56,4 +62,17 @@ export const getBattlePrompt = (text: string): string => {
 
 Text:
 "${text}"`;
+};
+
+/**
+ * Generates prompts for the custom tone builder feature
+ */
+export const getCustomTonePrompt = (referenceText: string, textToRewrite: string): string => {
+  return `Use the writing style from the reference sample below as a tone guide. Reword the second text to match this style, keeping the meaning intact.
+
+Reference Style:
+"${referenceText}"
+
+Text to Reword:
+"${textToRewrite}"`;
 }; 

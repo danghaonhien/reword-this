@@ -47,16 +47,16 @@ export const useRewrite = (): RewriteResult => {
           response = `We hereby state that ${text}`
           break
           
-        case 'persuasive':
-          response = `You absolutely need to consider that ${text}. Don't you agree?`
+        case 'gen_z':
+          response = `ngl, ${text} fr fr 💯 no cap! it's giving... vibes ✨`
           break
           
         case 'executive':
-          response = `Decision: ${text}. Action required immediately.`
+          response = `Bottom line: ${text}. The key implications are significant.`
           break
           
         case 'creative':
-          response = `Imagine a world where ${text} becomes the new reality!`
+          response = `Imagine a world where ${text}... The possibilities are endless!`
           break
           
         default:
@@ -66,9 +66,9 @@ export const useRewrite = (): RewriteResult => {
       setRewrittenText(response)
       return response
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
       setError(errorMessage)
-      throw err
+      return ''
     } finally {
       setIsLoading(false)
     }

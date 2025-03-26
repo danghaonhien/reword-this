@@ -5,14 +5,14 @@ import { useGameification } from '../hooks/useGameification'
 // Define available tone pairs for battling
 const TONE_PAIRS = [
   { a: { name: 'Friendly', description: 'Warm and approachable language' }, 
-    b: { name: 'Persuasive', description: 'Compelling and convincing language' } },
+    b: { name: 'Gen Z', description: 'Modern, casual internet slang with emojis' } },
   { a: { name: 'Formal', description: 'Professional and structured communication' }, 
     b: { name: 'Creative', description: 'Imaginative and expressive writing' } },
   { a: { name: 'Clarity', description: 'Clear and concise communication' }, 
     b: { name: 'Executive', description: 'Authoritative and decisive communication' } },
   { a: { name: 'Friendly', description: 'Warm and approachable language' }, 
     b: { name: 'Formal', description: 'Professional and structured communication' } },
-  { a: { name: 'Persuasive', description: 'Compelling and convincing language' }, 
+  { a: { name: 'Gen Z', description: 'Modern, casual internet slang with emojis' }, 
     b: { name: 'Executive', description: 'Authoritative and decisive communication' } }
 ]
 
@@ -169,12 +169,12 @@ const RewriteBattle: React.FC<RewriteBattleProps> = ({ originalText, onRewriteAg
         <>
           <div className="flex items-center justify-between mb-3 sticky top-0 bg-background pt-1 pb-2 ">
             <h3 className="text-sm font-medium">Choose Your Favorite Version</h3>
-            <button 
+            {/* <button 
               onClick={onRewriteAgain}
               className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
             >
               <RefreshCw className="w-3 h-3" /> Try Again
-            </button>
+            </button> */}
           </div>
 
           {isLoading ? (

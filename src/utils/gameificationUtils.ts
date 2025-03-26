@@ -1,4 +1,4 @@
-import { Theme, UnlockableTone } from '../hooks/gameificationTypes'
+import { Theme, UnlockableTone, ToneMasterBadge } from '../hooks/gameificationTypes'
 
 // Get the next unlockable tone based on the user's progress
 export const getNextUnlockableTone = (tones: UnlockableTone[], xp: number, streak: number): UnlockableTone | null => {
@@ -68,6 +68,21 @@ export const getNextUnlockableTheme = (themes: Theme[], xp: number, level: numbe
     
     // Default sort
     return a.unlockRequirement.value - b.unlockRequirement.value;
+  })[0];
+};
+
+// Get the closest badge to being unlocked
+export const getNextUnlockableBadge = (badges: ToneMasterBadge[]): ToneMasterBadge | null => {
+  // Filter to only get locked badges
+  const lockedBadges = badges.filter(badge => !badge.unlocked);
+  
+  if (lockedBadges.length === 0) return null;
+  
+  // Sort by progress percentage to find the one closest to completion
+  return lockedBadges.sort((a, b) => {
+    const aPercentage = a.progress / a.required;
+    const bPercentage = b.progress / b.required;
+    return bPercentage - aPercentage;
   })[0];
 };
 

@@ -2,19 +2,22 @@ import { useState, useEffect, useCallback } from 'react'
 import { 
   UnlockableTone, 
   Theme, 
+  ToneMasterBadge,
   DailyMission,
   GameificationResult 
 } from './gameificationTypes'
 import { gameificationService } from '../services/gameificationService'
 
-// Update the GlobalGameState and GameificationState interfaces
+// Define interface for the global state
 export interface GlobalGameState {
   xp: number
   level: number
   streak: number
   unlockableTones: UnlockableTone[]
   themes: Theme[]
+  toneMasterBadges: ToneMasterBadge[]
   dailyMissions: DailyMission[]
+  activeBadge: string | null
   activeTheme: Theme | null
   update: (state: Partial<GlobalGameState>) => void
 }
@@ -25,21 +28,25 @@ interface GameificationState {
   streak: number;
   unlockableTones: UnlockableTone[];
   themes: Theme[];
+  toneMasterBadges: ToneMasterBadge[];
   dailyMissions: DailyMission[];
   tonesUsedToday: Record<string, number>;
+  activeBadge: string | null;
   activeTheme: Theme | null;
   update: (state: Partial<GlobalGameState>) => void;
 }
 
-// Update the gameificationState object
+// Populate initial gameification state with defaults
 const gameificationState: GameificationState = {
   xp: 0,
   level: 1,
   streak: 0,
   unlockableTones: [],
   themes: [],
+  toneMasterBadges: [],
   dailyMissions: [],
   tonesUsedToday: {},
+  activeBadge: null,
   activeTheme: null,
   update: (state) => {
     Object.assign(gameificationState, state)
@@ -71,9 +78,9 @@ const initialUnlockableTones: UnlockableTone[] = [
     unlocked: false
   },
   {
-    id: 'persuasive',
-    name: 'Persuasive',
-    description: 'Compelling and convincing arguments',
+    id: 'gen_z',
+    name: 'Gen Z',
+    description: 'Modern, casual internet slang with emojis',
     unlockRequirement: { type: 'xp', value: 200 },
     unlocked: false
   },
@@ -160,35 +167,202 @@ const initialThemes: Theme[] = [
     }
 ];
   
-const initialDailyMissions: DailyMission[] = [
-  {
-    id: 'tone_explorer',
-    title: 'Tone Explorer',
-    description: 'Use 3 different tones today',
-    type: 'use_tones',
-    goal: 3,
+const initialToneMasterBadges: ToneMasterBadge[] = [
+  // Tone Mastery Badges
+    {
+    id: 'clarity_champion',
+      tone: 'clarity',
+    name: 'Clarity Champion',
+    description: 'Used Clarity tone 10 times',
+      progress: 0,
+    required: 10,
+      unlocked: false
+    },
+    {
+    id: 'friend_maker',
+      tone: 'friendly',
+    name: 'Friend Maker',
+    description: 'Used Friendly tone 10 times',
+      progress: 0,
+    required: 10,
+      unlocked: false
+    },
+    {
+    id: 'professional_writer',
+      tone: 'formal',
+    name: 'Professional Writer',
+    description: 'Used Formal tone 10 times',
     progress: 0,
-    completed: false,
+    required: 10,
+    unlocked: false
+  },
+  {
+    id: 'casual_conversationalist',
+    tone: 'casual',
+    name: 'Casual Conversationalist',
+    description: 'Used Casual tone 10 times',
+    progress: 0,
+    required: 10,
+    unlocked: false
+  },
+  {
+    id: 'enthusiasm_expert',
+    tone: 'enthusiastic',
+    name: 'Enthusiasm Expert',
+    description: 'Used Enthusiastic tone 10 times',
+    progress: 0,
+    required: 10,
+    unlocked: false
+  },
+  {
+    id: 'diplomatic_delegate',
+    tone: 'diplomatic',
+    name: 'Diplomatic Delegate',
+    description: 'Used Diplomatic tone 10 times',
+    progress: 0,
+    required: 10,
+    unlocked: false
+  },
+  {
+    id: 'persuasion_pro',
+    tone: 'persuasive',
+    name: 'Persuasion Pro',
+    description: 'Used Persuasive tone 15 times',
+    progress: 0,
+    required: 15,
+    unlocked: false
+  },
+  {
+    id: 'tech_talker',
+    tone: 'technical',
+    name: 'Tech Talker',
+    description: 'Used Technical tone 15 times',
+    progress: 0,
+    required: 15,
+    unlocked: false
+  },
+  {
+    id: 'creative_genius',
+    tone: 'creative',
+    name: 'Creative Genius',
+    description: 'Used Creative tone 15 times',
+      progress: 0,
+    required: 15,
+      unlocked: false
+    },
+    {
+    id: 'executive_elite',
+    tone: 'executive',
+    name: 'Executive Elite',
+    description: 'Used Executive tone 15 times',
+      progress: 0,
+      required: 15,
+      unlocked: false
+  },
+  // Feature Usage Badges
+  {
+    id: 'rewrite_rookie',
+    tone: '_feature',
+    name: 'Rewrite Rookie',
+    description: 'First rewrite',
+    progress: 0,
+    required: 1,
+    unlocked: false
+  },
+  {
+    id: 'dedication_daily',
+    tone: '_feature',
+    name: 'Dedication Daily',
+    description: 'First 3-day streak',
+    progress: 0,
+    required: 3,
+    unlocked: false
+  },
+  {
+    id: 'word_wizard',
+    tone: '_feature',
+    name: 'Word Wizard',
+    description: 'Rewrote 1,000 words total',
+    progress: 0,
+    required: 1000,
+    unlocked: false
+  },
+  {
+    id: 'battle_victor',
+    tone: '_feature',
+    name: 'Battle Victor',
+    description: 'Won 5 rewrite battles',
+    progress: 0,
+    required: 5,
+    unlocked: false
+  },
+  {
+    id: 'style_savant',
+    tone: '_feature',
+    name: 'Style Savant',
+    description: 'Used custom tone builder 3 times',
+    progress: 0,
+    required: 3,
+    unlocked: false
+  },
+  {
+    id: 'streak_master',
+    tone: '_feature',
+    name: 'Streak Master',
+    description: 'Reached 7-day streak',
+    progress: 0,
+    required: 7,
+    unlocked: false
+  },
+  {
+    id: 'power_user',
+    tone: '_feature',
+    name: 'Power User',
+    description: 'Used the app 30 times',
+    progress: 0,
+    required: 30,
+    unlocked: false
+  },
+  {
+    id: 'vocabulary_virtuoso',
+    tone: '_premium',
+    name: 'Vocabulary Virtuoso',
+    description: 'Premium: Used advanced vocabulary features',
+    progress: 0,
+    required: 1,
+      unlocked: false
+    }
+];
+  
+const initialDailyMissions: DailyMission[] = [
+    {
+    id: 'tone_explorer',
+      title: 'Tone Explorer',
+      description: 'Use 3 different tones today',
+      type: 'use_tones',
+      goal: 3,
+      progress: 0,
+      completed: false,
     reward: { type: 'xp', value: 40 }
   },
   {
     id: 'word_count',
     title: 'Word Count',
     description: 'Rewrite at least 200 words today',
-    type: 'rewrite_words',
+      type: 'rewrite_words',
     goal: 200,
-    progress: 0,
-    completed: false,
-    reward: { type: 'xp', value: 30 }
-  },
-  {
+      progress: 0,
+      completed: false,
+      reward: { type: 'xp', value: 30 }
+    },
+    {
     id: 'multi_tasker',
     title: 'Multi-tasker',
     description: 'Complete 3 different rewrites today',
     type: 'rewrite_count',
-    goal: 3,
-    progress: 0,
-    completed: false,
+      goal: 3,
+      progress: 0,
+      completed: false,
     reward: { type: 'xp', value: 50 }
   },
   {
@@ -200,6 +374,16 @@ const initialDailyMissions: DailyMission[] = [
     progress: 0,
     completed: false,
     reward: { type: 'xp', value: 60 }
+  },
+  {
+    id: 'style_specialist',
+    title: 'Style Specialist',
+    description: 'Use the Custom Tone Builder feature once today',
+    type: 'custom_tone',
+    goal: 1,
+    progress: 0,
+    completed: false,
+    reward: { type: 'xp', value: 70 }
   },
   {
     id: 'feedback_friend',
@@ -233,7 +417,16 @@ export function useGameification(): GameificationResult {
   const [streak, setStreak] = useState(0)
   const [unlockableTones, setUnlockableTones] = useState<UnlockableTone[]>([])
   const [themes, setThemes] = useState<Theme[]>([])
+  const [toneMasterBadges, setToneMasterBadges] = useState<ToneMasterBadge[]>([])
   const [dailyMissions, setDailyMissions] = useState<DailyMission[]>([])
+  const [activeBadge, setActiveBadgeState] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('active-badge')
+    }
+    return null
+  })
+  
+  // Add state for active theme
   const [activeTheme, setActiveThemeState] = useState<Theme | null>(null);
 
   // Initialize state from gameificationService
@@ -248,6 +441,7 @@ export function useGameification(): GameificationResult {
         gameificationService.initializeState({
           unlockableTones: initialUnlockableTones,
           themes: initialThemes,
+          toneMasterBadges: initialToneMasterBadges,
           dailyMissions: initialDailyMissions
         });
         serviceInitialized = true;
@@ -267,14 +461,16 @@ export function useGameification(): GameificationResult {
     setStreak(state.streak)
     setUnlockableTones(state.unlockableTones)
     setThemes(state.themes)
+    setToneMasterBadges(state.toneMasterBadges)
     setDailyMissions(state.dailyMissions)
+    setActiveBadgeState(state.activeBadge)
     
     // Handle activeTheme separately to ensure themes are loaded first
     if (themes.length === 0 && state.themes.length > 0) {
       // First time loading themes
       const savedThemeId = localStorage.getItem('active-theme') || 'standard';
       const theme = state.themes.find(t => t.id === savedThemeId && t.unlocked) || 
-                   state.themes.find(t => t.id === 'standard') || null;
+                    state.themes.find(t => t.id === 'standard') || null;
       
       if (theme) {
         console.log('Setting initial theme:', theme.id);
@@ -300,7 +496,9 @@ export function useGameification(): GameificationResult {
       streak: state.streak,
       unlockableTones: state.unlockableTones,
       themes: state.themes,
+      toneMasterBadges: state.toneMasterBadges,
       dailyMissions: state.dailyMissions,
+      activeBadge: state.activeBadge,
       activeTheme: state.activeTheme
     })
 
@@ -340,6 +538,16 @@ export function useGameification(): GameificationResult {
       }
     }
 
+    const handleBadgeUnlock = (e: CustomEvent) => {
+      const updatedBadges = [...toneMasterBadges]
+      const badgeIndex = updatedBadges.findIndex(b => b.id === e.detail.id)
+      if (badgeIndex >= 0) {
+        updatedBadges[badgeIndex] = e.detail
+        setToneMasterBadges(updatedBadges)
+        gameificationState.update({ toneMasterBadges: updatedBadges })
+      }
+    }
+
     const handleMissionUpdate = (e: CustomEvent) => {
       const updatedMissions = [...dailyMissions]
       const missionIndex = updatedMissions.findIndex(m => m.id === e.detail.id)
@@ -350,22 +558,30 @@ export function useGameification(): GameificationResult {
       }
     }
 
+    const handleActiveBadgeUpdate = (e: CustomEvent) => {
+      setActiveBadgeState(e.detail)
+      gameificationState.update({ activeBadge: e.detail })
+    }
+
     const handleActiveThemeUpdate = (e: CustomEvent) => {
       console.log('Received active_theme_update event with theme:', e.detail?.id);
       setActiveThemeState(e.detail);
       gameificationState.update({ activeTheme: e.detail });
     }
 
-    // Handle gameification updates
+    // Handle full state refresh
     const handleGameificationUpdate = (e: CustomEvent) => {
       const newState = e.detail;
       if (newState) {
-        if (newState.xp !== undefined) setXP(newState.xp);
-        if (newState.level !== undefined) setLevel(newState.level);
-        if (newState.streak !== undefined) setStreak(newState.streak);
+        console.log('Received full gameification update:', newState);
+        setXP(newState.xp);
+        setLevel(newState.level);
+        setStreak(newState.streak);
         if (newState.unlockableTones) setUnlockableTones(newState.unlockableTones);
         if (newState.themes) setThemes(newState.themes);
+        if (newState.toneMasterBadges) setToneMasterBadges(newState.toneMasterBadges);
         if (newState.dailyMissions) setDailyMissions(newState.dailyMissions);
+        if (newState.activeBadge !== undefined) setActiveBadge(newState.activeBadge);
         if (newState.activeTheme !== undefined) setActiveTheme(newState.activeTheme);
       }
     };
@@ -375,7 +591,9 @@ export function useGameification(): GameificationResult {
     window.addEventListener('streak_update', handleStreakUpdate as EventListener)
     window.addEventListener('tone_unlock', handleToneUnlock as EventListener)
     window.addEventListener('theme_unlock', handleThemeUnlock as EventListener)
+    window.addEventListener('badge_unlock', handleBadgeUnlock as EventListener)
     window.addEventListener('mission_update', handleMissionUpdate as EventListener)
+    window.addEventListener('active_badge_update', handleActiveBadgeUpdate as EventListener)
     window.addEventListener('active_theme_update', handleActiveThemeUpdate as EventListener)
     window.addEventListener('gameification_update', handleGameificationUpdate as EventListener)
 
@@ -385,7 +603,9 @@ export function useGameification(): GameificationResult {
       window.removeEventListener('streak_update', handleStreakUpdate as EventListener)
       window.removeEventListener('tone_unlock', handleToneUnlock as EventListener)
       window.removeEventListener('theme_unlock', handleThemeUnlock as EventListener)
+      window.removeEventListener('badge_unlock', handleBadgeUnlock as EventListener)
       window.removeEventListener('mission_update', handleMissionUpdate as EventListener)
+      window.removeEventListener('active_badge_update', handleActiveBadgeUpdate as EventListener)
       window.removeEventListener('active_theme_update', handleActiveThemeUpdate as EventListener)
       window.removeEventListener('gameification_update', handleGameificationUpdate as EventListener)
     }
@@ -415,25 +635,13 @@ export function useGameification(): GameificationResult {
   }
 
   const trackBattle = (winner: string, loser: string) => {
-    console.log(`Tracking battle: ${winner} vs ${loser}`);
     addXP(10); // Add XP for battles
-    
-    // Explicitly call the updateMissions with 'battle' type
-    gameificationService.updateMissions('battle', 1);
-    
-    // You could also track usage for both tones to increase their badge progress
-    const wordCount = 10; // Nominal word count for tracking purposes
-    gameificationService.trackToneUsage(winner, wordCount);
-    gameificationService.trackToneUsage(loser, wordCount/2); // Less for the loser
-    
-    // Check if we need to update any battle-related missions
-    const missionUpdated = gameificationService.getState().dailyMissions.find(m => 
-      m.type === 'battle' && !m.completed && m.progress < m.goal
-    );
-    
-    if (missionUpdated) {
-      console.log(`Updated battle mission: ${missionUpdated.title}, progress: ${missionUpdated.progress}/${missionUpdated.goal}`);
-    }
+    gameificationService.updateMissions('battle', 1); 
+  }
+
+  const trackCustomTone = () => {
+    addXP(15); // Add XP for custom tone creation
+    gameificationService.updateMissions('custom_tone', 1); 
   }
   
   const trackFeedback = () => {
@@ -441,12 +649,48 @@ export function useGameification(): GameificationResult {
     gameificationService.trackFeedback()
   }
   
-  // Add stub for trackWordWizard that doesn't rely on badge functionality
   const trackWordWizard = (wordCount: number) => {
-    // Add a small XP reward for processing words
-    addXP(Math.min(Math.floor(wordCount / 100), 10)); // Cap at 10 XP
-    console.log(`Tracked ${wordCount} words`);
+    // Find the word wizard badge and update its progress
+    const badge = toneMasterBadges.find(b => b.id === 'word_wizard');
+    if (badge && !badge.unlocked) {
+      // Update progress through the service by simulating tone usage
+      // This is a temporary solution until we implement a proper method for tracking word count
+      const updatedBadge = { ...badge, progress: badge.progress + wordCount };
+      if (updatedBadge.progress >= updatedBadge.required) {
+        updatedBadge.unlocked = true;
+        
+        // Dispatch a badge unlock event
+        window.dispatchEvent(new CustomEvent('badge_unlock', { 
+          detail: updatedBadge 
+        }));
+        
+        // Also dispatch the unified reward event
+        window.dispatchEvent(new CustomEvent('rewardUnlocked', { 
+          detail: {
+            unlockedDetails: {
+              tones: [],
+              themes: [],
+              badges: [updatedBadge.id]
+            }
+          }
+        }));
+      }
+    }
   }
+
+  // Set active badge with localStorage persistence
+  const setActiveBadge = useCallback((badgeId: string | null) => {
+    setActiveBadgeState(badgeId)
+    if (badgeId) {
+      localStorage.setItem('active-badge', badgeId)
+    } else {
+      localStorage.removeItem('active-badge')
+    }
+    
+    // Update global state
+    gameificationState.activeBadge = badgeId
+    gameificationState.update({activeBadge: badgeId})
+  }, [])
   
   // Set active theme with localStorage persistence
   const setActiveTheme = useCallback((theme: Theme | null) => {
@@ -469,7 +713,7 @@ export function useGameification(): GameificationResult {
     return 'Mission issues fixed';
   }
   
-  const simulateUnlock = (type: 'tone' | 'theme', id: string) => {
+  const simulateUnlock = (type: 'tone' | 'theme' | 'badge', id: string) => {
     console.log(`Simulating unlock for ${type} with id ${id}`);
     
     if (type === 'tone') {
@@ -501,6 +745,21 @@ export function useGameification(): GameificationResult {
           }
         }));
         return `Simulated unlock for theme: ${theme.name}`;
+      }
+    } else if (type === 'badge') {
+      const badge = gameificationService.getState().toneMasterBadges.find(b => b.id === id);
+      if (badge) {
+        window.dispatchEvent(new CustomEvent('badge_unlock', { detail: {...badge, unlocked: true, progress: badge.required} }));
+        window.dispatchEvent(new CustomEvent('rewardUnlocked', { 
+          detail: {
+            unlockedDetails: {
+              tones: [],
+              themes: [],
+              badges: [id]
+            }
+          }
+        }));
+        return `Simulated unlock for badge: ${badge.name}`;
       }
     }
     
@@ -546,22 +805,26 @@ export function useGameification(): GameificationResult {
     return false;
   };
 
-  // Return the gameification result without badge-related properties and methods
+  // Return the gameification result with all needed properties and methods
   const result: GameificationResult = {
     xp,
     level,
     streak,
     unlockableTones,
     themes,
+    toneMasterBadges,
     dailyMissions,
     tonesUsedToday: gameificationService.getTonesUsedToday(),
+    activeBadge,
     activeTheme,
     addXP,
     checkAndUpdateStreak: () => gameificationService.updateStreak(),
     trackToneUsage,
     trackBattle,
+    trackCustomTone,
     trackFeedback,
     trackWordWizard,
+    setActiveBadge,
     setActiveTheme,
     completeMission
   };

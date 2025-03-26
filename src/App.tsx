@@ -24,7 +24,7 @@ function App() {
   }, [])
 
   return (
-    <div className="w-[420px] min-h-[520px] p-0 bg-background text-foreground shadow-xl rounded-lg overflow-hidden">
+    <div className="w-[420px] min-h-[520px] p-0 bg-card text-foreground  border-l  overflow-hidden fixed top-0 right-0 z-50">
       <PopupView selectedText={selectedText} />
     </div>
   )

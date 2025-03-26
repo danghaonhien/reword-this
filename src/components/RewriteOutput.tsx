@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { Copy, ArrowLeft, Check } from 'lucide-react'
+import { Copy, ArrowLeft, RefreshCw, Check } from 'lucide-react'
 
 interface RewriteOutputProps {
   originalText: string
   rewrittenText: string
   tone: string
   onRewriteAgain: () => void
-  onChangeTone?: () => void  // Add optional handler for changing tone
 }
 
 const RewriteOutput: React.FC<RewriteOutputProps> = ({
@@ -14,7 +13,6 @@ const RewriteOutput: React.FC<RewriteOutputProps> = ({
   rewrittenText,
   tone,
   onRewriteAgain,
-  onChangeTone,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -58,30 +56,15 @@ const RewriteOutput: React.FC<RewriteOutputProps> = ({
   }, [rewrittenText, originalText, tone]);
 
   const handleCopy = () => {
-    // Copy the rewritten text to clipboard
     navigator.clipboard.writeText(rewrittenText)
       .then(() => {
-        // Show success state
         setCopied(true);
-        
         // Reset copied state after 2 seconds
         setTimeout(() => setCopied(false), 2000);
-        
-        console.log('Text successfully copied to clipboard');
       })
       .catch(err => {
         console.error('Failed to copy text: ', err);
       });
-  };
-
-  // Handle different tone button click
-  const handleChangeTone = () => {
-    // If an explicit handler is provided, use it, otherwise fall back to onRewriteAgain
-    if (onChangeTone) {
-      onChangeTone();
-    } else {
-      onRewriteAgain();
-    }
   };
 
   return (
@@ -115,15 +98,24 @@ const RewriteOutput: React.FC<RewriteOutputProps> = ({
         {originalText}
       </div>
 
-      <div className="mt-auto">
+      <div className="flex gap-2 mt-auto">
         <button
-          onClick={handleChangeTone}
-          className="flex items-center justify-center gap-1 py-2 px-3 w-full
+          onClick={onRewriteAgain}
+          className="flex items-center justify-center gap-1 py-2 px-3 
                    bg-secondary/20 text-secondary hover:bg-secondary/30 
-                   transition-colors border border-border/60 rounded-md"
+                   transition-colors border border-border/60 rounded-md flex-1"
         >
           <ArrowLeft className="w-4 h-4" />
           Try Different Tone
+        </button>
+        <button
+          onClick={onRewriteAgain}
+          className="flex items-center justify-center gap-1 py-2 px-3 
+                   bg-accent text-accent-foreground rounded-md hover:bg-accent/90 
+                   transition-colors flex-1"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Rewrite Again
         </button>
       </div>
     </div>
